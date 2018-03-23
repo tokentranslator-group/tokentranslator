@@ -254,7 +254,8 @@ def lex(sent="a+U*U*V+D[V,{y,1}]-c*D[U,{x,2}]"):
 
             if len(rest) == 2:
                 left = lex(rest[0])
-                X = [Word(lps.map_ptg[pattern_name], [first, res])]
+                X = [Word(lps.map_ptg[pattern_name],
+                          [first, res, pattern_name])]
                 right = lex(rest[1])
 
                 # [left, X, right]
@@ -262,14 +263,16 @@ def lex(sent="a+U*U*V+D[V,{y,1}]-c*D[U,{x,2}]"):
 
             elif(len(rest) == 1):
                 if res.start == 0:
-                    X = [Word(lps.map_ptg[pattern_name], [first, res])]
+                    X = [Word(lps.map_ptg[pattern_name],
+                              [first, res, pattern_name])]
                     right = lex(rest[0])
 
                     # [X, right]
                     return(X + right)
                 else:
                     left = lex(rest[0])
-                    X = [Word(lps.map_ptg(pattern_name), [first, res])]
+                    X = [Word(lps.map_ptg(pattern_name),
+                              [first, res, pattern_name])]
 
                     # [left, X]
                     return(left + X)

@@ -1,4 +1,6 @@
-from main import word_lex_test, convert_out, parse
+''' python3 tests.py'''
+
+from main import parse
 
 
 tests = ["(U)^3",
@@ -51,47 +53,24 @@ tests = ["(U)^3",
          "U'=a+U*U*V-(b+1)*U+c*(D[U,{x,2}]+D[U,{y,2}])",
          "U'=t1 * (D[U,{x,2}] + D[U,{y,2}])",
          "U'=2.0 - V",
-         "U'=a*(D[U,{x,2}] + D[U,{y,2}])"]
-
-
-def test_parser(sent):
-    try:
-        result = word_lex_test(sent)
-    except:
-        result = None
-    return(result)
-
-
-def test():
-    
-    tests_1 = [(lambda sent: sent.replace(' ', ""))(test.split('=')[-1])
-               for test in tests]
-    print(tests_1)
-    
-    results = [test_parser(sent) for sent in tests_1]
-    
-    for _id, result in enumerate(results):
-        print("\ntest: %s" % (tests_1[_id]))
-        if result is not None:
-            # print("\nresult tree:")
-            # print(result)
-            print("\nconverted:")
-            print(result)
-            # print(convert_out(result))
-        else:
-            print('fail')
+         "U'=a*(D[U,{x,2}] + D[U,{y,2}])",
+         "U'=a*(sin(a+b)+(U)^3)"]
 
 
 def parse_one(test):
-    #return(parse(test))
-
     try:
         return(parse(test))
     except:
         return(None)
 
-    
-def test_new():
+
+def test_one(test="U'=a*(sin(a+b)+(U+V)^3)"):
+    res = parse(test)
+    print('result:')
+    print(res)
+
+
+def test_all():
     res = [parse_one(test) for test in tests]
     for _id, result in enumerate(res):
         print("\ntest %s: %s" % (_id, tests[_id]))
@@ -103,5 +82,5 @@ def test_new():
 
 
 if __name__ == '__main__':
-    # test()
-    test_new()
+    #test_all()
+    test_one()

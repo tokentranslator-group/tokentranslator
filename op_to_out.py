@@ -10,16 +10,11 @@ function lambda x:x[1] return original sent.
 
 '''
 
-
-def replace_branches(left, right, lex_replacer):
-    left, right = lex_replacer(['branches', left, right])
-    return((left, right))
-
-
+'''
 def replace(term, lex_replacer):
 
-    '''Replace term with lex_replacer function.
-    If term is not of type Word then return term.'''
+    ''Replace term with lex_replacer function.
+    If term is not of type Word then return term.''
 
     if type(term) == str:
         # if term is not in lexem:
@@ -28,39 +23,41 @@ def replace(term, lex_replacer):
         # if term is type(Word)
         X = term.replace_lex(lex_replacer)
     return(X)
+'''
 
 
-def convert_tree(op_tree, lex_replacer=lambda x: x[0]):
+def convert_tree(op_tree, lex_replacer):
     if len(op_tree.children) == 0:
         # finish:
-
-        X = replace(op_tree.name, lex_replacer)
-
+        X = lex_replacer(op_tree.name)
         return(X)
 
     elif len(op_tree.children) == 2:
         # main:
 
-        left = convert_tree(op_tree.children[1])
-        X = replace(op_tree.name, lex_replacer)
-        right = convert_tree(op_tree.children[0])
+        left = convert_tree(op_tree.children[1], lex_replacer)
+        X = lex_replacer(op_tree.name)
+        right = convert_tree(op_tree.children[0], lex_replacer)
 
         return(left+X+right)
 
     elif(len(op_tree.children) == 4):
         # if branches:
 
-        leftb = replace(op_tree.children[-1].name, lex_replacer)
-        left = convert_tree(op_tree.children[1])
-        X = replace(op_tree.name, lex_replacer)
-        right = convert_tree(op_tree.children[0])
-        rightb = replace(op_tree.children[-2].name, lex_replacer)
-
+        leftb = op_tree.children[-1].name
+        left = convert_tree(op_tree.children[1], lex_replacer)
+        X = lex_replacer(op_tree.name)
+        right = convert_tree(op_tree.children[0], lex_replacer)
+        rightb = op_tree.children[-2].name
+        leftb, rightb = lex_replacer([leftb, rightb])
+        
         return(leftb+left+X+right+rightb)
 
 
-def convert(o, lex_replacer=lambda x: x[0]):
+def convert(o, lex_replacer):
     if type(o) == list:
-        return(replace(o[0], lex_replacer))
+        # for case goal_sent = a (like s='U'):
+        return(lex_replacer(o[0]))
     else:
+        # for other:
         return(convert_tree(o, lex_replacer))
