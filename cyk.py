@@ -26,7 +26,7 @@ FOR
    T->T*F|F
    F->(E)|a
 '''
-grammer = [('E', 'EX'), ('E', 'TY'), ('E', 'LZ'), ('E', 'a'),
+grammar = [('E', 'EX'), ('E', 'TY'), ('E', 'LZ'), ('E', 'a'),
            ('X', 'PT'),
            ('T', 'TY'), ('T', 'LZ'), ('T', 'a'),
            ('Y', 'MF'),
@@ -38,26 +38,26 @@ grammer = [('E', 'EX'), ('E', 'TY'), ('E', 'LZ'), ('E', 'a'),
 # END FOR
 
 
-def get_rules(grammer, term=True):
+def get_rules(grammar, term=True):
 
     ''' If term True return rulels like ['F', 'a'],
     else return rules like ['E', 'TX']'''
 
     # cond = lambda elm, term: not elm.isupper() if term else elm.isupper()
     cond = lambda elm, term: not elm[0].isupper() if term else elm[0].isupper()
-    rules = [(parent, child) for parent, child in grammer
+    rules = [(parent, child) for parent, child in grammar
              if cond(child, term)]
     return(rules)
 
 
-def init_P(grammer, length):
-    P = dict([[(parent, s, p), False] for parent, child in grammer
+def init_P(grammar, length):
+    P = dict([[(parent, s, p), False] for parent, child in grammar
               for s in range(1, length+1)
               for p in range(1, length+1)])
     return(P)
 
 
-def cyk(goal='(a+a)*a', grammer=grammer):
+def cyk(goal='(a+a)*a', grammar=grammar):
 
     '''Cocke–Younger–Kasami algorithm.
 
@@ -74,9 +74,9 @@ def cyk(goal='(a+a)*a', grammer=grammer):
         words = goal
 
     N = len(words)
-    rule_term = get_rules(grammer, term=True)
-    rule_unterm = get_rules(grammer, term=False)
-    P = init_P(grammer, N)
+    rule_term = get_rules(grammar, term=True)
+    rule_unterm = get_rules(grammar, term=False)
+    P = init_P(grammar, N)
     Tree = {}
 
     for s in range(1, N+1):  # 1..N
