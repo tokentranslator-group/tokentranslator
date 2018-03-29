@@ -81,8 +81,8 @@ def case_1(node):
 def case_3(node):
 
     ''' Case when node have two children, one
-    of which is branches, other not (W->[a, )] or E->[(, a]).
-    In that case choice not branches node as top node.'''
+    of which is brackets, other not (W->[a, )] or E->[(, a]).
+    In that case choice not brackets node as top node.'''
 
     term_node = node.find_term_child()
     br_node = node.find_br_child()

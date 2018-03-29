@@ -58,6 +58,7 @@ class Lex():
         self.patterns.append(('coefs_pattern', self.coefs_pattern))
         self.patterns.append(('pow_pattern', self.pow_pattern))
         self.patterns.append(('float_pattern', self.term_float))
+        self.patterns_dict = dict(self.patterns)
 
         # map_patterns_to_grammar:
         self.map_ptg = dict([('diff_pattern', 'a'),
@@ -136,7 +137,7 @@ class Lex():
 
         '''For U or U(t-1.5)'''
 
-        val_pattern = ('[%s](\(%s\))?'
+        val_pattern = ('(?P<val>[%s](\(%s\))?)'
                        % (self.dep_vars, self.arg_time))
         self.val_pattern = val_pattern
 
@@ -176,9 +177,10 @@ class Lex():
         # Out[96]: {'delay': '1', 'val_x': '1', 'val_y': '3', 'val_z': None}
         #diff_pattern = ('^D\[[%s](\(%s\))?,%s\]'
         #                % (self.dep_vars, self.arg_time, self.args_ord))
-        diff_pattern = ('D\[[%s](\(%s\))?,%s\]'
-                        % (self.dep_vars, self.arg_time, self.args_ord))
-        
+        # diff_pattern = ('D\[[%s](\(%s\))?,%s\]'
+        #                % (self.dep_vars, self.arg_time, self.args_ord))
+        diff_pattern = ('D\[%s,%s\]'
+                        % (self.val_pattern, self.args_ord))
         self.diff_pattern = diff_pattern
 
     def init_pow_pattern(self):

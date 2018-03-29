@@ -27,11 +27,17 @@ secondIndexSTR
 
 '''
 import sys
+from code_gens.cpp.someFuncs import NewtonBinomCoefficient
+from code_gens.cpp.someFuncs import generateCodeForMathFunction
+
+'''
 # python 2 or 3
 if sys.version_info[0] > 2:
-    from domainmodel.criminal.someFuncs import NewtonBinomCoefficient, generateCodeForMathFunction
+    from domainmodel.criminal.someFuncs import NewtonBinomCoefficient
+    from domainmode.criminal.someFuncs import generateCodeForMathFunction
 else:
     from someFuncs import NewtonBinomCoefficient, generateCodeForMathFunction
+'''
 
 
 class DerivGenerator():
@@ -80,9 +86,10 @@ class PureDerivGenerator(DerivGenerator):
 
         # like ['x'] i.e. for which diff maked
         # see in begining of callDerivGenerator
+        # TODO use 'x' instead:
         self.indepVarList = params.indepVarList
-
-        self.derivOrder = params.derivOrder
+        x = params.indepVarList[0]
+        self.derivOrder = params.indepVarOrders[x]
 
         # like ['x', 'y', 'z']
         self.userIndepVariables = ['x', 'y', 'z']
@@ -160,9 +167,9 @@ class PureDerivGenerator(DerivGenerator):
                                   + " VarIndex[0]="+str(self.indepVarIndexList[0])))
                 '''
 
-        # for debug
-        self.print_dbg("FROM PureDerivGenerator.init",
-                       "end for special")
+            # for debug
+            self.print_dbg("FROM PureDerivGenerator.init",
+                           "end for special")
 
         # END FOR SPECIAL
 
@@ -365,11 +372,11 @@ class PureDerivGenerator(DerivGenerator):
                               + "\n use make_general_data first"))
 
         if self.derivOrder == 1:
-            toLeft = ('source['+'arg_delay'+'][idx - '
+            toLeft = ('source['+'delay'+'][idx - '
                       + stride + ' * ' + 'Block'
                       + str(self.blockNumber) + 'CELLSIZE + '
                       + str(self.unknownVarIndex) + ']')
-            toRight = ('source['+'arg_delay'+'][idx + '
+            toRight = ('source['+'delay'+'][idx + '
                        + stride + ' * ' + 'Block'
                        + str(self.blockNumber) + 'CELLSIZE + '
                        + str(self.unknownVarIndex) + ']')
@@ -388,7 +395,7 @@ class PureDerivGenerator(DerivGenerator):
                                + m1 * ' - ' + m2 * m3 * ' + '
                                + m4 * (str(coefficientList[i])
                                        + ' * '))
-                restOfLine = ('source['+'arg_delay'+'][idx' + str(index)
+                restOfLine = ('source['+'delay'+'][idx' + str(index)
                               + ' * ' + stride + ' * ' + 'Block'
                               + str(self.blockNumber) + 'CELLSIZE + '
                               + str(self.unknownVarIndex) + ']')
@@ -459,11 +466,11 @@ class PureDerivGenerator(DerivGenerator):
         if self.derivOrder == 1:
             return boundaryValue
         elif self.derivOrder == 2:
-            second = ('source['+'arg_delay'+'][idx + '
+            second = ('source['+'delay'+'][idx + '
                       + str(self.unknownVarIndex) + ']')
             m1 = leftOrRightBoundary % 2
             m2 = (leftOrRightBoundary - 1) % 2
-            first = ('source['+'arg_delay'+'][idx' + m1 * ' + '
+            first = ('source['+'delay'+'][idx' + m1 * ' + '
                      + m2 * ' - ' + stride + ' * ' + 'Block'
                      + str(self.blockNumber) + 'CELLSIZE + '
                      + str(self.unknownVarIndex) + ']')
@@ -509,18 +516,18 @@ class PureDerivGenerator(DerivGenerator):
                               + "\n use make_general_data first"))
 
         if self.side % 2 == 0:
-            first = ('source['+'arg_delay'+'][idx + '
+            first = ('source['+'delay'+'][idx + '
                      + stride + ' * ' + 'Block'
                      + str(self.blockNumber) + 'CELLSIZE + '
                      + str(self.unknownVarIndex) + ']')
             second = ('ic['+str(self.firstIndex)+']['
-                      + self.secondIndexSTR + ' + '
+                      + str(self.secondIndexSTR) + ' + '
                       + str(self.unknownVarIndex) + ']')
         else:
             first = ('ic['+str(self.firstIndex)+']['
-                     + self.secondIndexSTR + ' + '
+                     + str(self.secondIndexSTR) + ' + '
                      + str(self.unknownVarIndex) + ']')
-            second = ('source['+'arg_delay'+'][idx - '
+            second = ('source['+'delay'+'][idx - '
                       + stride + ' * ' + 'Block'
                       + str(self.blockNumber) + 'CELLSIZE + '
                       + str(self.unknownVarIndex) + ']')
@@ -528,7 +535,7 @@ class PureDerivGenerator(DerivGenerator):
             return('0.5 * ' + increment + ' * '
                    + '(' + first + ' - ' + second + ')')
         elif self.derivOrder == 2:
-            third = ('2.0 * source['+'arg_delay'+'][idx + '
+            third = ('2.0 * source['+'delay'+'][idx + '
                      + str(self.unknownVarIndex) + ']')
             return('(' + increment + ' * '
                    + ('(' + first + ' - ' + third + ' + '
@@ -586,8 +593,8 @@ class MixDerivGenerator(DerivGenerator):
         # self.parsedMathFunction = 'arg_mathFunction'
         self.side = params.side
 
-        if ((params.diffMethod == 'special')
-            and (params.diffType == 'mix')):
+        if(params.diffMethod == 'special'
+           and params.diffType == 'mix'):
             try:
                 # self.indepVarIndex = params.indepVarIndex
                 self.indepVarIndex = self.indepVarList[1]
@@ -664,19 +671,19 @@ class MixDerivGenerator(DerivGenerator):
 
         length = len(strideList)
         if length == 2:
-            first = ('source['+'arg_delay'+'][idx+ ('
+            first = ('source['+'delay'+'][idx+ ('
                      + strideList[0] + ' + ' + strideList[1]
                      + ') * ' + 'Block' + str(self.blockNumber)
                      + 'CELLSIZE + ' + str(self.unknownVarIndex) + ']')
-            second = (' - source['+'arg_delay'+'][idx - ('
+            second = (' - source['+'delay'+'][idx - ('
                       + strideList[0] + ' - ' + strideList[1]
                       + ') * ' + 'Block' + str(self.blockNumber)
                       + 'CELLSIZE + ' + str(self.unknownVarIndex) + ']')
-            third = (' - source['+'arg_delay'+'][idx + ('
+            third = (' - source['+'delay'+'][idx + ('
                      + strideList[0] + ' - ' + strideList[1]
                      + ') * ' + 'Block' + str(self.blockNumber)
                      + 'CELLSIZE + ' + str(self.unknownVarIndex) + ']')
-            fourth = (' + source['+'arg_delay'+'][idx - ('
+            fourth = (' + source['+'delay'+'][idx - ('
                       + strideList[0] + ' + ' + strideList[1]
                       + ') * ' + 'Block' + str(self.blockNumber)
                       + 'CELLSIZE + ' + str(self.unknownVarIndex) + ']')

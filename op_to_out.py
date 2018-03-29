@@ -24,13 +24,14 @@ def replace(term, lex_replacer):
         X = term.replace_lex(lex_replacer)
     return(X)
 '''
+from replacer_cpp import CppGen
 
 
 def convert_tree(op_tree, lex_replacer):
     if len(op_tree.children) == 0:
         # finish:
         X = lex_replacer(op_tree.name)
-        return(X)
+        return([X])
 
     elif len(op_tree.children) == 2:
         # main:
@@ -39,10 +40,10 @@ def convert_tree(op_tree, lex_replacer):
         X = lex_replacer(op_tree.name)
         right = convert_tree(op_tree.children[0], lex_replacer)
 
-        return(left+X+right)
+        return(left+[X]+right)
 
     elif(len(op_tree.children) == 4):
-        # if branches:
+        # if brackets:
 
         leftb = op_tree.children[-1].name
         left = convert_tree(op_tree.children[1], lex_replacer)
@@ -51,13 +52,18 @@ def convert_tree(op_tree, lex_replacer):
         rightb = op_tree.children[-2].name
         leftb, rightb = lex_replacer([leftb, rightb])
         
-        return(leftb+left+X+right+rightb)
+        return([leftb]+left+[X]+right+[rightb])
 
 
 def convert(o, lex_replacer):
+
     if type(o) == list:
         # for case goal_sent = a (like s='U'):
-        return(lex_replacer(o[0]))
+        out = lex_replacer(o[0])
     else:
         # for other:
-        return(convert_tree(o, lex_replacer))
+        out = convert_tree(o, lex_replacer)
+
+    out = lex_replacer.postproc(out)
+    # lex_replacer
+    return(out)

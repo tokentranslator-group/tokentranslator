@@ -1,167 +1,76 @@
-'''
-    Algorithm:
+from equation import Equation
 
-    1) lexical analysis:
-          U'=c*(D[U,{x,2}+sin(x))]
-       to
-          a*(a+fa))
-       where each a, f is type of Word, and contain original
-       lexems in lex arg. (f is short for sin(,cos(,...)
-    2) 1 to parse tree (by CYK):
-    with grammar:
-       E -> E{+-}T|T
-       T->T{*/}F|T{*/}W|T{*/}V|F
-       W -> (E)^
-       V -> f(E)
-       F->(E)|a
-    (grammar_pow_f from grammars.py)
-    to parse tree:
-    ('E', ('T', 'T1'))
-        child 0: ('T', 'a')
-        child 1: ('T1', ('M', 'F'))
-           child 0: ('M', '*')
-           child 1: ('F', ('L', 'F1'))
-              child 0: ('L', '(')
-              child 1: ('F1', ('E', 'R'))
-                 child 0: ('E', ('E', 'E1'))
-                    child 0: ('E', 'a')
-                    child 1: ('E1', ('P', 'T'))
-                       child 0: ('P', '+')
-                       child 1: ('T', ('LF', 'V1'))
-                          child 0: ('LF', 'f')
-                          child 1: ('V1', ('E', 'RF'))
-                             child 0: ('E', 'a')
-                             child 1: ('RF', ')')
-                 child 1: ('R', ')')
-    3) Convert parse tree to operator's tree
-    (with convert from trees.py):
-       ('M', '*')
-            child 0: ('P', '+')
-               child 0: ('E', 'a')
-                  child 0: ('RF', ')')
-                  child 1: ('LF', 'f')
-               child 1: ('E', 'a')
-               child 2: ('R', ')')
-               child 3: ('L', '(')
-            child 1: ('T', 'a')
+def test():
 
-    4) Transform operator's tree to out by replacing lexems
-    with func lex_repacer (with convert from op_to_out.py):
-    for lex_repacer = lambda x:x[0] result should be same as
-    original sent (see op_to_out.py for more):
-       
-       c*(D[U,{x,2}+sin(x))]
-
-    END OF Algorithm.
-
-'''
-from grammars import gm_to_cnf
-from grammars import grammar_pow_f
-from lex import lex
-from cyk import cyk
-from trees import convert
-from op_to_out import convert as convert_out
-from replacer import lex_replacer
-
-
-def sym_step(goal_sent):
-
-    '''Transform list of Word's into operation's tree'''
-
-    # transform grammar to cnf:
-    grammar_cnf = gm_to_cnf(grammar_pow_f)
-
-    # parse
-    p, t = cyk(goal=goal_sent, grammar=grammar_cnf)
-    
-    # convert parse tree to operator's tree:
-    ot = convert(t)
-
-    print('\nresult:')
-    return(ot)
-
-
-def word_lex_test(s, lex_repacer):
-
-    '''Transform string s into parser tree, then
-    operation tree, then convert result by replacing
-    all lexem with it's values'''
-
-    # lexical step:
-    goal_sent = lex(sent=s)
-
-    # for case goal_sent = a (like s='U'):
-    if len(goal_sent) == 1:
-        res = convert_out(goal_sent, lex_repacer)
-        return(res)
-
-    # for case like goal_sent = -(a+ ...) or -a
-    if goal_sent[0] == '-':
-        if len(goal_sent) == 2:
-            # like -a:
-            res = convert_out(goal_sent, lex_repacer)
-            return(res)
-        else:
-            # like -(a+a)
-            prefix, goal_sent = goal_sent[0], goal_sent[1:]
-            ot = sym_step(goal_sent)
-            res = convert_out(ot, lex_repacer)
-            return(prefix+res)
-    
-    # for all other cases:
-    ot = sym_step(goal_sent)
-    res = convert_out(ot, lex_repacer)
-    return(res)
-
-
-def parse(sent):
-    '''Parse sent with cyk parser and lexems from lex.
-
-    Input:
-    snet - string either like "U'= F" or "F" where
-           F must satisfy grammar's rules and lexem's patterns.
-    Return:
-    converted sent.
-    
-'''
-    # remove spaces:
-    sent = sent.replace(' ', "")
-
-    # work with equations
-    if '=' in sent:
-        # like eq: U'= sin(x)
-        prefix, sent = sent.split('=')
-        prefix = prefix + '='
-    else:
-        # like eq: sin(x)
-        prefix = ""
-    
-    # main work:
-    sent_out_list = word_lex_test(sent, lex_replacer)
-    
-    # put prefix back:
-    res = [prefix]+[sent_out_list]
-    return(res)
-
-
-if __name__ == '__main__':
     # s = sys.argv[sys.argv.index('-s')+1]
-    
-    result_word_lex = word_lex_test("a+U*U*V+D[V,{y,1}]-c*D[U,{x,2}]",
-                                    lex_replacer)
-    result_word_lex_pow = word_lex_test("a+(D[V,{y,1}]-c*D[U,{x,2}])^3",
-                                        lex_replacer)
-    result_word_lex_func = word_lex_test("sin(a+c)+cos(U-c*D[U,{x,2}])",
-                                         lex_replacer)
- 
-    print("\nresult word_lex_test:")
-    print("\ninput: %s\n" % ('a+U*U*V+D[V,{y,1}]-c*D[U,{x,2}]'))
-    print(result_word_lex)
+    input_word_lex = ("a+U*U(t-3.1)*V(t-3.3)+D[V(t-1.1),{y,1}]"
+                      + "-c*D[U(t-1.3),{x,2}]")
+    input_word_lex_pow = "a+(D[V(t-1.1),{y,1}]-c*D[U(t-1.3),{x,2}])^3"
+    input_word_lex_func = "sin(a+c)+cos(U-c*D[U,{x,2}])"
+    eq1 = Equation(input_word_lex)
+    eq2 = Equation(input_word_lex_pow)
+    eq3 = Equation(input_word_lex_func)
+    eqs = [eq1, eq2, eq3]
 
-    print("\nresult word_lex_pow:")
-    print("\ninput: %s\n" % ("a+(D[V,{y,1}]-c*D[U,{x,2}])^3"))
-    print(result_word_lex_pow)
+    for eq in eqs:
+        eq.set_dim(dim=2)
+        eq.set_blockNumber(blockNumber=0)
+
+        eq.set_vars_indexes(vars_to_indexes=[('U', 0), ('V', 1)])
+
+        coeffs_to_indexes = [('a', 0), ('b', 1), ('c', 2)]
+        eq.set_coeffs_indexes(coeffs_to_indexes=coeffs_to_indexes)
+
+        eq.set_diff_type(diffType='pure',
+                         diffMethod='common')
+        eq.set_point(point=[3, 3])
+
+        eq.parse()
+    
+    print("\ndelay word_lex_test:")
+    print("\ninput: %s\n" % (input_word_lex))
+    print('out:')
+    eqs[0].show()
+
+    print("\npow word_lex_pow:")
+    print("\ninput: %s\n" % (input_word_lex_pow))
+    print('out:')
+    eqs[1].show()
 
     print("\nresult word_lex_func:")
-    print("\ninput: %s\n" % ("sin(a+c)+cos(U-c*D[U,{x,2}])"))
-    print(result_word_lex_func)
+    print("\ninput: %s\n" % (input_word_lex_func))
+    print('out:')
+    eqs[2].show()
+
+    
+if __name__ == '__main__':
+    test()
+
+'''
+eq1 = Eq("U'=a*(U(t-3.1)+U(t-1.1))")
+# ...
+ereg1 = eRegion(equation=eq1,
+                begin=[0.5, 0.0], end=[2.7, 1])
+# ...
+bound1 = Dirichlet(begin, end, func='sin(y)')
+side0 = Side()
+side0.set_bound(bound1, coords=[[x1, x2],...])
+side0.set_default(bound0)
+# ...
+ireg1 = IRegion(val='0')
+# ...
+
+block1 = Block(size=[]
+               sides=[side0, ...],
+               equationRegions=[ereg1, ereg2, ereg3],
+               initRegions = [ireg1])
+# ...
+ic1 = Interconnects(blocks=[block1, block2],
+                    sides=[1, 0])
+
+model = Model(grid, blocks=[block1,...],
+              ics=[ic1,...])
+domain = model.gen_domain('hybridsolver')
+src = model.gen_cpp('hybridsolver')
+solver.run(domain, src)
+'''
