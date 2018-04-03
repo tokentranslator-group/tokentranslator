@@ -1,7 +1,11 @@
 from cpp_out import Params
-from cpp_out import Diff, Val, Coeffs, Bdp
+from cpp_out import Diff, Val, Coeffs, Bdp, Pow
 from replacer import Gen
 from copy import deepcopy as copy
+
+
+class Out():
+    pass
 
 
 class CppGen(Gen):
@@ -15,6 +19,7 @@ class CppGen(Gen):
         self.bdp_gen = Bdp(self)
         self.val_gen = Val(self)
         self.coeffs_gen = Coeffs(self)
+        self.pow_gen = Pow(self)
 
     def postproc(self, out):
 
@@ -26,12 +31,35 @@ class CppGen(Gen):
 
         First it collect delays (and remember from whom)
         then convert them,
-        finely replace them into it's term.out string.
+        finely replace them into it's term.cpp.out string.
         
         Examples:
-        term.global_data['delay_data'] = (1, 'V(t-1.1)', '1.1')
-        term.out = source[delay]
-        term.out_new = source[coverted delay for 1.1]
+        term.cpp.global_data['delay_data'] = (1, 'V(t-1.1)', '1.1')
+        term.cpp.out = source[delay]
+        term.cpp.out_new = source[coverted delay for 1.1]
+
+        Return:
+        (in sent U*U(t-3.1)*V(t-3.3)*U(t-1.3)*V(t-1.1) ...)
+
+        {'converted_delay': 2, 'delay_data': (1, 'U(t-3.1)', '3.1')}
+        for U(t-3.1) where:
+        converted_delay : source[converted_delay][0]
+        delay_data[0] - number of delay's term U(t-3.1)
+                        in all delays terms.
+
+        {'converted_delay': 2, 'delay_data': (2, 'V(t-3.3)', '3.3')}
+        for V(t-3.3) where:
+        converted_delay : source[converted_delay][1]
+        delay_data[0] - number of delay's term V(t-3.3)
+                        in all delays terms.
+
+        {'converted_delay': 1, 'delay_data': (3, 'U(t-1.3)', '1.3')}
+        for U(t-1.3) where:
+        converted_delay : source[converted_delay][0]
+        delay_data[0] - number of delay's term U(t-1.3)
+                        in all delays terms.
+
+
         '''
 
         def convert_delays(delays):
@@ -54,19 +82,29 @@ class CppGen(Gen):
         # res[val] = [(delay_0, term_id_0), ...]
         res = {}
         for term in out:
+            '''
             if type(term) == str:
                 continue
+            '''
             try:
-                delay_data = term.global_data['delay_data']
+                delay_data = term.cpp.global_data['delay_data']
                 term_id, var, delay = delay_data
                 # U(t-1.1)->U
                 var = var[0]
                 if var in res.keys():
-                    res[var][delay] = term_id
+                    if delay in res[var].keys():
+                        res[var][delay].append(term_id)
+                    else:
+                        res[var][delay] = [term_id]
                 else:
-                    res[var] = {delay: term_id}
+                    res[var] = {delay: [term_id]}
             except KeyError:
                 pass
+            except AttributeError:
+                # if term not have out:
+                # (like +):
+                continue
+        print("res")
         print(res)
         # END FOR
 
@@ -75,8 +113,10 @@ class CppGen(Gen):
         map_dsd = lambda var: convert_delays(list(res[var].keys()))
         
         # map_td: term_id -> source delay
-        map_td = dict([(res[var][delay], sdelay) for var in res.keys()
-                       for delay, sdelay in map_dsd(var)])
+        map_td = dict([(equal_term, sdelay) for var in res.keys()
+                       for delay, sdelay in map_dsd(var)
+                       for equal_term in res[var][delay]])
+        print("map_td")
         print(map_td)
         # END FOR
 
@@ -84,29 +124,48 @@ class CppGen(Gen):
         out_new = []
         for term in out:
             try:
+                '''
                 if type(term) == str:
                     out_new.append(term)
                     continue
+                '''
                 # if delay
                 # transform source[delay]->source[1]:
-                delay_data = term.global_data['delay_data']
+                delay_data = term.cpp.global_data['delay_data']
                 term_id, var, delay = delay_data
                 sdelay = map_td[term_id]
-                term.out = term.out.replace('delay', str(sdelay))
-                term.global_data['converted_delay'] = sdelay
+                term.cpp.out = term.cpp.out.replace('delay', str(sdelay))
+                term.cpp.global_data['converted_delay'] = sdelay
                 out_new.append(term)
             except KeyError:
                 try:
                     # if no delay
                     # transform source[delay]->source[0]
-                    term.out = term.out.replace('delay', str(0))
+                    term.cpp.out = term.cpp.out.replace('delay', str(0))
                     out_new.append(term)
-                except AttributeError:
-                    # if term not have out:
-                    # (like +):
-                    out_new.append(term)
-        print([o.out for o in out_new if type(o) != str])
-        return(out_new)
+                except:
+                    pass
+            except AttributeError:
+                # if term not have out:
+                # (like +):
+                out_new.append(term)
+        # print([o.out for o in out_new if type(o) != str])
+        return(out)  # out_new
+
+    def translate_brackets(self, left_term, right_term):
+        # TODO
+        left_term.cpp = Out()
+        right_term.cpp = Out()
+
+        # for pow (left=( right=w)
+        if right_term.name == 'w':
+            print(right_term)
+            self.pow_gen.set_base(right_term)
+            # transform to cpp:
+            left_out, right_out = self.pow_gen.print_cpp()
+            left_term.cpp.out = left_out
+            right_term.cpp.out = right_out
+        return((left_term, right_term))
 
     def add_out_to(self, term):
 
@@ -124,40 +183,35 @@ class CppGen(Gen):
         and add it to term.
         
         '''
-        term.global_data = {}
-        pattern = term.lex[-1]
+        term.cpp = Out()
+        term.cpp.global_data = {}
+        pattern = term.name.lex[-1]
         if pattern == 'diff_pattern':
             # add data to term:
             data = self.diff_gen.set_base(term)
             if data is not None:
-                term.global_data = data
-            else:
-                term.global_data = {}
+                term.cpp.global_data = data
 
             # transform to cpp:
-            term.out = self.diff_gen.print_cpp()
+            term.cpp.out = self.diff_gen.print_cpp()
 
         elif pattern == 'bdp':
             # add data to term:
             data = self.bdp_gen.set_base(term)
             if data is not None:
-                term.global_data = data
-            else:
-                term.global_data = {}
+                term.cpp.global_data = data
 
             # transform to cpp:
-            term.out = self.bdp_gen.print_cpp()
+            term.cpp.out = self.bdp_gen.print_cpp()
 
         elif pattern == 'val_pattern':
             # add data to term:
             data = self.val_gen.set_base(term)
             if data is not None:
-                term.global_data = data
-            else:
-                term.global_data = {}
+                term.cpp.global_data = data
 
             # transform to cpp:
-            term.out = self.val_gen.print_cpp()
+            term.cpp.out = self.val_gen.print_cpp()
 
         elif pattern == 'coefs_pattern':
             # extract coeffs value from term
@@ -165,18 +219,20 @@ class CppGen(Gen):
             self.coeffs_gen.set_coeff_index(term)
 
             # transform to cpp:
-            term.out = self.coeffs_gen.print_cpp()
-
-        elif pattern == 'pow_pattern':
-            # transform to cpp:
-            term.out = None
-        elif pattern == 'func_pattern':
-            # transform to cpp:
-            term.out = term.lex[0]
+            term.cpp.out = self.coeffs_gen.print_cpp()
+        
+            '''
+            elif pattern == 'pow_pattern':
+                # transform to cpp:
+                term.cpp.out = None
+            elif pattern == 'func_pattern':
+                # transform to cpp:
+                term.cpp.out = term.lex[0]
+            '''
 
         elif pattern == 'float_pattern':
             # transform to cpp:
-            term.out = term.lex[0]
+            term.cpp.out = term.name.lex[0]
         return(term)
 
     def set_dim(self, **kwargs):
@@ -276,9 +332,6 @@ class CppOutsForTerms():
             methodTermName = methodName.split('_')[-1]
             if methodTermName == termName:
                 return(lambda *args: methods[methodName](self, *args))
-
-    def get_out_for_termPower(self):
-        return("pow(arg_val, arg_power)")
 
 
 def test():

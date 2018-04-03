@@ -27,43 +27,84 @@ def replace(term, lex_replacer):
 from replacer_cpp import CppGen
 
 
-def convert_tree(op_tree, lex_replacer):
+def flatten_tree(op_tree, node_replacer):
     if len(op_tree.children) == 0:
         # finish:
-        X = lex_replacer(op_tree.name)
+        X = node_replacer(op_tree)
         return([X])
-
-    elif len(op_tree.children) == 2:
+        
+    elif op_tree.name != 'br':
         # main:
 
-        left = convert_tree(op_tree.children[1], lex_replacer)
-        X = lex_replacer(op_tree.name)
-        right = convert_tree(op_tree.children[0], lex_replacer)
+        left = flatten_tree(op_tree.children[1], node_replacer)
+        X = node_replacer(op_tree)
+        right = flatten_tree(op_tree.children[0], node_replacer)
 
         return(left+[X]+right)
 
-    elif(len(op_tree.children) == 4):
+    elif(op_tree.name == 'br'):
         # if brackets:
+    
+        # work with brackets itself:
+        _res = node_replacer(op_tree)
+        print("_res")
+        print(type(op_tree))
+        print(_res)
+        leftb, rightb = _res
 
-        leftb = op_tree.children[-1].name
-        left = convert_tree(op_tree.children[1], lex_replacer)
-        X = lex_replacer(op_tree.name)
-        right = convert_tree(op_tree.children[0], lex_replacer)
-        rightb = op_tree.children[-2].name
-        leftb, rightb = lex_replacer([leftb, rightb])
-        
-        return([leftb]+left+[X]+right+[rightb])
+        # work with brackets args:
+        out = []
+        out.append(leftb)
+        for _id, arg in enumerate(op_tree.children[1].children):
+            # if more than one arg
+            # (for complex brackets):
+            if _id != 0:
+                out.append(',')
+            X = flatten_tree(arg, node_replacer)
+            out.extend(X)
+        out.append(rightb)
+        return(out)
 
 
-def convert(o, lex_replacer):
-
+def flatten(o, lex_replacer):
+    
     if type(o) == list:
         # for case goal_sent = a (like s='U'):
         out = lex_replacer(o[0])
     else:
         # for other:
-        out = convert_tree(o, lex_replacer)
+        out = flatten_tree(o, lex_replacer)
 
     out = lex_replacer.postproc(out)
     # lex_replacer
     return(out)
+
+
+def map_tree(tree, node_replacer):
+
+    if len(tree.children) == 0:
+        # finish:
+        node_replacer(tree)
+        
+    elif tree.name != 'br':
+        # main:
+
+        map_tree(tree.children[1], node_replacer)
+        node_replacer(tree)
+        map_tree(tree.children[0], node_replacer)
+
+    elif(tree.name == 'br'):
+        # if brackets:
+    
+        # work with brackets itself:
+        node_replacer(tree)
+
+        # work with brackets args:
+        for _id, arg in enumerate(tree.children[1].children):
+            map_tree(arg, node_replacer)
+    return(tree)
+    
+
+def map_tree_postproc(mapped_tree, node_replacer):
+    node_replacer.postproc(mapped_tree)
+    return(mapped_tree)

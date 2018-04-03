@@ -1,4 +1,5 @@
 from words import Word
+from nodes import NodeR
 import abc
 
 
@@ -20,28 +21,30 @@ class Gen():
                                        (like ['(', 'w']
                                         or ['f',')']'''
 
-        if type(term) == str:
+        if(term.name == 'br'):  # type(term.name) == Word and
+            # for branches (a+...)^3 or sin(a+...):
+            leftb = term.children[0]
+            rightb = term.children[-1]
+            leftb, rightb = self.translate_brackets(leftb, rightb)
+            X = (leftb, rightb)
+        elif type(term.name) == str:
             # if term is not in lexem:
             X = term
-        elif(type(term) == Word):
+        elif(term.name != 'br'):  # type(term.name) == Word and
             # if term is type(Word)
             # it can be branch too
             # (in case of one argument
             # like (a)^3 or sin(a)):
             X = self.add_out_to(term)
-        elif(type(term) == list):
-            # for branches (a+...)^3 or sin(a+...):
-            X = []
-            for tm in term:
-                if type(tm) == Word:
-                    # for )^n and sin(:
-                    X.append(self.add_out_to(tm))
-                else:
-                    # for ():
-                    X.append(tm)
+
         return(X)
  
-        @abc.abstractmethod
-        def add_out_to(self, term):
-            raise(BaseException(('add_out_to method of Gen class'
-                                 + ' must be implemented')))
+    @abc.abstractmethod
+    def add_out_to(self, term):
+        raise(BaseException(('add_out_to method of Gen class'
+                             + ' must be implemented')))
+
+    @abc.abstractmethod
+    def translate_brackets(self, left_term, right_term):
+        raise(BaseException(('translate_brackets method of Gen class'
+                             + ' must be implemented')))

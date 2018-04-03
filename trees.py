@@ -10,32 +10,21 @@ bug with python
 '''
 
 
-def py_bug_fix(node):
-
-    '''For strange python bug'''
-
-    node.children = [child for child in node.children]
-
-
 def case_0(node):
 
     ''' Case when node have only one children.
-    Only in that case node.visited changed.'''
+    Only in that case node.visited changed.
+    
+    Example:
+    T->[a] to a.'''
 
     parent = node.parent
     child = node.children[0]
-    node_id = parent.find_child(node)
     
-    # remove node from parent
-    parent.children.pop(node_id)
-
-    child.parent = parent
     child.visited = True
 
-    # add child to parent as new child
-    py_bug_fix(parent)
-    parent.children.insert(node_id, child)
-    
+    parent.replace_child(node, child)
+
     # return succ:
     return(parent)
 
@@ -52,24 +41,12 @@ def case_1(node):
     op_node = node.find_op_child()
     unop_node = node.find_unop_child()
 
-    # add unop_node to op_node as child
-    unop_node.parent = op_node
-    # import pdb; pdb.set_trace()
-    py_bug_fix(op_node)
-    op_node.children.append(unop_node)
+    op_node.add_child(unop_node)
 
     parent = node.parent
     if parent is not None:
-        node_id = parent.find_child(node)
+        parent.replace_child(node, op_node)
 
-        # remove node from parent
-        parent.children.pop(node_id)
-
-        # add op_node to parent as new child
-        op_node.parent = parent
-        py_bug_fix(parent)
-        parent.children.insert(node_id, op_node)
-    
         # return succ:
         return(parent)
     else:
@@ -78,41 +55,135 @@ def case_1(node):
         return(op_node)
 
 
-def case_3(node):
+def case_3_0(node):
 
     ''' Case when node have two children, one
     of which is brackets, other not (W->[a, )] or E->[(, a]).
-    In that case choice not brackets node as top node.'''
-
-    term_node = node.find_term_child()
-    br_node = node.find_br_child()
-
-    # import pdb; pdb.set_trace()
-    
-    # add br_node to term_node as child
-    br_node.parent = term_node
-    # import pdb; pdb.set_trace()
-    py_bug_fix(term_node)
-    term_node.children.append(br_node)
+    In that case it transform from:
+    T->['(', H->[X, ')']]
+    to
+    br->['(', args->[X], ')']
+    !Right branch is alvays second (from buttom)'''
 
     parent = node.parent
-    if parent is not None:
-        node_id = parent.find_child(node)
+    grandparent = parent.parent
 
-        # remove node from parent
-        parent.children.pop(node_id)
+    br_r_node = node.find_br_child()
+    # br_l_node = parent.find_br_child()
+    # import pdb; pdb.set_trace()
 
-        # add term_node to parent as new child
-        term_node.parent = parent
-        py_bug_fix(parent)
-        parent.children.insert(node_id, term_node)
-    
+    # cut right bracket from H:
+    node.remove_child(br_r_node)
+
+    # insert right bracket to br node (T)
+    # (like T->['(', H->[X], ')']):
+    parent.add_child(br_r_node)
+
+    # rename H to args:
+    node.name = 'args'
+    node.visited = True
+
+    # rename T to br:
+    parent.name = 'br'
+    parent.visited = True
+
+    if grandparent is not None:
         # return succ:
-        return(parent)
+        return(grandparent)
     else:
-        term_node.parent = parent
         # root node
-        return(term_node)
+        return(parent)
+
+
+def case_3_1(node):
+
+    ''' Case when node have two children, one
+    of which is brackets, other not (W->[a, )] or E->[(, a]).
+    In that case it transform from:
+    T->['(', H->[args, ')']]
+    to
+    br->['(', args, ')']'''
+
+    parent = node.parent
+    grandparent = parent.parent
+    
+    arg_node = node.find_unbr_child()
+    br_r_node = node.find_br_child()
+    # br_l_node = parent.find_br_child()
+    # import pdb; pdb.set_trace()
+    node.remove_child(br_r_node)
+    node.remove_child(arg_node)
+
+    parent.remove_child(node)
+
+    parent.add_child(arg_node)
+    parent.add_child(br_r_node)
+    parent.name = 'br'
+    parent.visited = True
+
+    if grandparent is not None:
+        # return succ:
+        return(grandparent)
+    else:
+        # root node
+        return(parent)
+
+
+def case_4_0(node):
+
+    '''Case for function type of brackets with many
+    arguments (like fa,a,a,)).
+
+    From parent->[A1->[',', args->[a]]]
+    To parent->args->[a]
+    
+    From parent->[A1->[',', X]]
+    To parent->args->[X]
+    '''
+    
+    parent = node.parent
+
+    sp_node = node.find_sp_child()
+    unsp_node = node.find_unsp_child()
+
+    # from A1->[',', {arg, X}]
+    # to A1->[{args, X}->[a]]
+    node.remove_child(sp_node)
+
+    if unsp_node.name == 'args':
+        # from parent->[A1->[args->[a]]]
+        # to parent->[args->[a]]
+        parent.replace_child(node, unsp_node)
+    else:
+        # like parent->[A1->[X]]
+        # to parent->[args->[X]]
+        node.name = 'args'
+        node.visited = True
+    return(parent)
+
+
+def case_4_1(node):
+
+    '''Case for function type of brackets with many
+    arguments (like fa,a,a,)).
+
+    From A1->[X, args->[a]]
+    To args->[X, a]'''
+
+    parent = node.parent
+
+    arg_node = node.find_arg_child()
+    unarg_node = node.find_unarg_child()
+
+    # from A1->[X, args->[a]]
+    # to A1->[args->[X, a]]
+    node.remove_child(unarg_node)
+    arg_node.insert_child(unarg_node, 0)
+
+    # from A1->[args->[X, a]]
+    # to args->[X, a]
+    parent.replace_child(node, arg_node)
+    return(parent)
 
 
 def case_2(node, op_nodes):
@@ -136,22 +207,12 @@ def case_2(node, op_nodes):
         import pdb; pdb.set_trace()
         raise(BaseException("case_2 no top node error"))
 
-    # add buttom_node to top_op_node as child
-    buttom_op_node.parent = top_op_node
-    py_bug_fix(top_op_node)
-    top_op_node.children.append(buttom_op_node)
+    top_op_node.add_child(buttom_op_node)
 
     # choice succ:
     if parent is not None:
-
-        # remove node from parent
-        node_id = parent.find_child(node)
-        parent.children.pop(node_id)
         
-        # add op_node to parent as new child
-        top_op_node.parent = parent
-        py_bug_fix(parent)
-        parent.children.insert(node_id, top_op_node)
+        parent.replace_child(node, top_op_node)
 
         # return succ:
         return(parent)
@@ -175,6 +236,7 @@ def convert(node):
         succ = node.parent
 
     elif len(node.children) == 1 and not node.visited:
+        # work with T->[a]
         print("case_0")
         succ = case_0(node)
     
@@ -188,16 +250,44 @@ def convert(node):
             succ = unvisited[0]
         else:
             ops = node.get_operators()
+            bps = node.get_brackets()
+            sps = node.get_separators()
+            ars = node.get_args()
 
-            if len(ops) == 0:
-                print("case_3")
-                succ = case_3(node)
+            if len(bps) > 0 and len(ars) == 0:
+                # work with F->['(', F1->[X, ')']]
+                print("case_3_0")
+                succ = case_3_0(node)
+            elif len(bps) > 0 and len(ars) > 0:
+                # work with F->['(', F1->[args, ')']]
+                print("case_3_1")
+                succ = case_3_1(node)
+
+            elif len(sps) > 0:
+                # work with A1->[',', arg]
+                print("case_4_0")
+                succ = case_4_0(node)
+            elif len(ars) > 0:
+                # work with A->[X, arg]
+                print("case_4_1")
+                succ = case_4_1(node)
+                '''
+                elif len(ops) == 0 and len(bps) != 0:
+                    print("case_3")
+                    succ = case_3(node)
+                '''
+            elif len(ops) == 0:  # and len(bps) == 0
+                # work with T->[a]
+                print("case_0")
+                succ = case_0(node)
             elif len(ops) == 1:
+                # work with T->[a, *->[a]]
                 print("case_1")
                 succ = case_1(node)
-            else:
+            elif len(ops) == 2:
+                # work with E->[*->[a,a], +->[a]]:
                 print("case_2")
-                print("len(ops): %s"%(str(len(ops))))
+                print("len(ops): %s" % (str(len(ops))))
                 succ = case_2(node, ops)
     print("\nsucc:")
     print(succ)

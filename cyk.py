@@ -118,9 +118,13 @@ def cyk(goal='(a+a)*a', grammar=grammar):
     # return only top node:
     # return(P, Tree)
 
-    # if more then one solution found, remove
-    # parent uncentrality:
-    Tree[('E', 1, len(goal))].add_parent()
-
-    return(P[('E', 1, len(goal))], Tree[('E', 1, len(goal))])
+    try:
+        # if more then one solution found, remove
+        # parent uncentrality:
+        Tree[('E', 1, len(goal))].add_parent()
+        result = (P[('E', 1, len(goal))], Tree[('E', 1, len(goal))])
+    except KeyError:
+        print("cyk fail, founded rules will be returned")
+        result = (P, Tree)
+    return(result)
             

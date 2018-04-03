@@ -40,7 +40,7 @@ class Term():
         self.params.blockNumber = blockNumber
 
     def set_var_index(self, term):
-        var = term.lex[1].group('val')
+        var = term.name.lex[1].group('val')
         # for case like U(t-1.1)
         var = var[0]
         self.params.unknownVarIndex = self.params.map_vti[var]
@@ -57,7 +57,7 @@ class Term():
         and add term index to global_params
         (for conversion in postprocessing)'''
 
-        pattern = term.lex[1]
+        pattern = term.name.lex[1]
 
         delay = pattern.group('delay')
         if delay is not None:
@@ -100,7 +100,7 @@ class Diff(Term):
 
         '''Find values and it's orders (like {x, 2})'''
         
-        pattern = term.lex[1]
+        pattern = term.name.lex[1]
         for var in 'xyz':
             order = pattern.group('val_'+var)
             if order is not None:
@@ -382,7 +382,7 @@ class Coeffs(Term):
         self.set_coeff_index(term)
 
     def set_coeff_index(self, term):
-        coeffs = term.lex[0]
+        coeffs = term.name.lex[0]
         try:
             self.params.coeffsIndex = self.params.map_cti[coeffs]
         except:
@@ -397,4 +397,30 @@ class Coeffs(Term):
         return('params['
                + str(coeffsIndex)
                + ']')
+
+
+class Pow(Term):
+
+    def set_base(self, term):
+
+        '''Used for fill local data'''
+
+        self.set_pow_degree(term)
+
+    def set_pow_degree(self, term):
+        # try:
+        # if name is a Word
+        right = term.name.lex[0]
+        # except AttributeError:
+        #     # if name is a str
+        #     right = term.name
+
+        self.degree = right.split('^')[1]
+        
+    def print_cpp(self):
+        
+        degree = str(self.degree)
+        left = "pow("
+        right = "," + degree + ")"
+        return(left, right)
 

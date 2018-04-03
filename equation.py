@@ -57,10 +57,12 @@
 '''
 from grammars import gm_to_cnf
 from grammars import grammar_pow_f
+from grammars import gm_pow_f_args
 from lex import lex
 from cyk import cyk
 from trees import convert
-from op_to_out import convert as convert_out
+from op_to_out import flatten
+from op_to_out import map_tree, map_tree_postproc
 # from replacer import lex_replacer
 from replacer_cpp import CppGen
 
@@ -76,11 +78,11 @@ class Equation():
         '''Transform list of Word's into operation's tree'''
 
         # transform grammar to cnf:
-        grammar_cnf = gm_to_cnf(grammar_pow_f)
+        grammar_cnf = gm_to_cnf(gm_pow_f_args)  # grammar_pow_f
 
         # parse
         p, t = cyk(goal=goal_sent, grammar=grammar_cnf)
-
+        # return(t)
         # convert parse tree to operator's tree:
         ot = convert(t)
 
@@ -100,25 +102,26 @@ class Equation():
 
         # for case goal_sent = a (like s='U'):
         if len(goal_sent) == 1:
-            res = convert_out(goal_sent, lex_replacer)
+            res = flatten(goal_sent, lex_replacer)
             return(res)
 
         # for case like goal_sent = -(a+ ...) or -a
         if goal_sent[0] == '-':
             if len(goal_sent) == 2:
                 # like -a:
-                res = convert_out(goal_sent, lex_replacer)
+                res = flatten(goal_sent, lex_replacer)
                 return(res)
             else:
                 # like -(a+a)
                 prefix, goal_sent = goal_sent[0], goal_sent[1:]
                 ot = self._sym_step(goal_sent)
-                res = convert_out(ot, lex_replacer)
+                res = flatten(ot, lex_replacer)
                 return(prefix+res)
 
         # for all other cases:
         ot = self._sym_step(goal_sent)
-        res = convert_out(ot, lex_replacer)
+        self.operator_tree = ot
+        res = flatten(ot, lex_replacer)
         return(res)
 
     def parse(self):
@@ -152,26 +155,35 @@ class Equation():
         self.result = res
 
     def show(self):
+        # print("self.result")
         # print(self.result)
-        
+            
         # try:
+        '''
         s = []
         d = []
         for term in self.result:
-            if type(term) != str:
+            try:
                 d.append(term.global_data)
+            except:
+                pass
             try:
                 try:
                     index = term.global_data['delay']
                     s.append([term.out, index])
                 except:
-                    s.append(term.out)
+                    if type(term) == str:
+                        s.append(term)
+                    else:
+                        s.append(term.out)
             except:
-                s.append(term)
+                
+                s.append(term.name)
         print("global_data")
         print(d)
         print("\neq result:")
         print(s)
+        '''
         '''
         except:
             raise(BaseException('result not redy: use parse first'))
@@ -235,7 +247,57 @@ class Equation():
     # END FOR
 
 
+def test():
+    sa = 'a*(a+fa,a,a,))'
+    eq = Equation(sa)
+
+    tests = ['(a)', '(a+a)', 'a*(a+a)', 'a+(a+a)*a',
+             sa, 'fa)', 'fa,)']
+
+    # sym tests:
+    outs = []
+
+    for test in tests:
+        op_tree = eq._sym_step(test)
+        flat = flatten(op_tree, eq.cpp_replacer)
+        '''
+        try:
+            outs.append(eq._sym_step(test))
+        except:
+            outs.append("fail for %s " % (test))
+        '''
+    print("\nouts:")
+    for out in outs:
+        print(out)
+
+
+def test_1():
+    '''Test tree chengings.
+    '''
+    input_word_lex_func = "(V(t-3.1)*U(t-3.1)+V(t-1.1)*U(t-3.1)+U(t-1.1))^3+cos(U-c*D[U,{x,2}])"
+    eq = Equation(input_word_lex_func)
+
+    eq.set_dim(dim=2)
+    eq.set_blockNumber(blockNumber=0)
+
+    eq.set_vars_indexes(vars_to_indexes=[('U', 0), ('V', 1)])
+
+    coeffs_to_indexes = [('a', 0), ('b', 1), ('c', 2)]
+    eq.set_coeffs_indexes(coeffs_to_indexes=coeffs_to_indexes)
+
+    eq.set_diff_type(diffType='pure',
+                     diffMethod='common')
+    eq.set_point(point=[3, 3])
+
+    eq.parse()
+    # return(eq)
+    cpp_fl = flatten(eq.operator_tree, eq.cpp_replacer)
+    cpp_map = map_tree(eq.operator_tree, eq.cpp_replacer)
+    cpp_map_postproc = map_tree_postproc(cpp_map, eq.cpp_replacer)
+    return(cpp_map_postproc)
+    return(cpp_map)
+    return(cpp_fl)
+
+
 if __name__ == '__main__':
-    eq = Equation('(a+a)*a')
-    op_tree = eq._sym_step(eq.sent)
-    print(op_tree)
+    test_1()
