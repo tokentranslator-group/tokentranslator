@@ -294,6 +294,12 @@ def test_1():
     cpp_fl = flatten(eq.operator_tree, eq.cpp_replacer)
     cpp_map = map_tree(eq.operator_tree, eq.cpp_replacer)
     cpp_map_postproc = map_tree_postproc(cpp_map, eq.cpp_replacer)
+
+    print("original:")
+    print(cpp_map_postproc.flatten('original'))
+    print("cpp:")
+    print(cpp_map_postproc.flatten('cpp'))
+
     return(cpp_map_postproc)
     return(cpp_map)
     return(cpp_fl)
