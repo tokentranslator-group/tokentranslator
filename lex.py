@@ -47,6 +47,7 @@ class Lex():
         self.init_diff_pattern()
         self.init_pow_pattern()
         self.init_func_pattern()
+        self.init_free_var_pattern()
 
         self.patterns = []
         
@@ -54,7 +55,8 @@ class Lex():
         self.patterns.append(('diff_pattern', self.diff_pattern))
         self.patterns.append(('bdp', self.bound_delay_point))
         self.patterns.append(('func_pattern', self.func_pattern))
-        self.patterns.append(('val_pattern', self.val_pattern))
+        self.patterns.append(('var_pattern', self.var_pattern))
+        self.patterns.append(('free_var_pattern', self.free_var_pattern))
         self.patterns.append(('coefs_pattern', self.coefs_pattern))
         self.patterns.append(('pow_pattern', self.pow_pattern))
         self.patterns.append(('float_pattern', self.term_float))
@@ -63,7 +65,8 @@ class Lex():
         # map_patterns_to_grammar:
         self.map_ptg = dict([('diff_pattern', 'a'),
                              ('bdp', 'a'),
-                             ('val_pattern', 'a'),
+                             ('var_pattern', 'a'),
+                             ('free_var_pattern', 'a'),
                              ('coefs_pattern', 'a'),
                              ('pow_pattern', 'w'),
                              ('func_pattern', 'f'),
@@ -83,7 +86,7 @@ class Lex():
 
         func = ['exp', 'sqrt', 'log',
                 'sin', 'cos', 'tan',
-                'sinh', 'tanh']
+                'sinh', 'tanh', 'f', 'g', 'h']
         self.func = func
 
         self.unary = ['-']
@@ -137,9 +140,16 @@ class Lex():
 
         '''For U or U(t-1.5)'''
 
-        val_pattern = ('(?P<val>[%s](\(%s\))?)'
+        var_pattern = ('(?P<val>[%s](\(%s\))?)'
                        % (self.dep_vars, self.arg_time))
-        self.val_pattern = val_pattern
+        self.var_pattern = var_pattern
+
+    def init_free_var_pattern(self):
+
+        '''For x, y, z'''
+
+        var_pattern = "[%s]" % (self.indep_vars)
+        self.free_var_pattern = var_pattern
 
     def init_coefs_pattern(self):
         coefs_pattern = ('[%s]'
@@ -180,7 +190,7 @@ class Lex():
         # diff_pattern = ('D\[[%s](\(%s\))?,%s\]'
         #                % (self.dep_vars, self.arg_time, self.args_ord))
         diff_pattern = ('D\[%s,%s\]'
-                        % (self.val_pattern, self.args_ord))
+                        % (self.var_pattern, self.args_ord))
         self.diff_pattern = diff_pattern
 
     def init_pow_pattern(self):

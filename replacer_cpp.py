@@ -1,7 +1,16 @@
 from cpp_out import Params
-from cpp_out import Diff, Val, Coeffs, Bdp, Pow
+from cpp_out import Diff, Var, FreeVar
+from cpp_out import Coeffs, Bdp, Pow, Func
 from replacer import Gen
 from copy import deepcopy as copy
+
+import logging
+
+# create logger
+log_level = logging.INFO  # logging.DEBUG
+logging.basicConfig(level=log_level)
+logger = logging.getLogger('replacer_cpp.py')
+logger.setLevel(level=log_level)
 
 
 class Out():
@@ -17,9 +26,11 @@ class CppGen(Gen):
         
         self.diff_gen = Diff(self)
         self.bdp_gen = Bdp(self)
-        self.val_gen = Val(self)
+        self.var_gen = Var(self)
+        self.free_var_gen = FreeVar(self)
         self.coeffs_gen = Coeffs(self)
         self.pow_gen = Pow(self)
+        self.func_gen = Func(self)
 
     def postproc(self, out):
 
@@ -70,10 +81,10 @@ class CppGen(Gen):
             # delays = copy(delays)
             delays.sort()
             sdelays = [delays.index(val)+1 for val in delays]
-            print(sdelays)
+            logger.debug(sdelays)
             return(zip(delays, sdelays))
 
-        print("FROM postproc")
+        logger.debug("FROM postproc")
 
         # FOR factorize terms delays for var:
         # res[val] = [(delay_0, term_id_0), ...]
@@ -101,8 +112,8 @@ class CppGen(Gen):
                 # if term not have out:
                 # (like +):
                 continue
-        print("res")
-        print(res)
+        logger.debug("res")
+        logger.debug(res)
         # END FOR
 
         # FOR map float delays to it's source equivalent:
@@ -113,8 +124,8 @@ class CppGen(Gen):
         map_td = dict([(equal_term, sdelay) for var in res.keys()
                        for delay, sdelay in map_dsd(var)
                        for equal_term in res[var][delay]])
-        print("map_td")
-        print(map_td)
+        logger.debug("map_td")
+        logger.debug(map_td)
         # END FOR
 
         # FOR find terms for converted delay:
@@ -146,7 +157,7 @@ class CppGen(Gen):
                 # if term not have out:
                 # (like +):
                 out_new.append(term)
-        # print([o.out for o in out_new if type(o) != str])
+        # logger.debug([o.out for o in out_new if type(o) != str])
         return(out)  # out_new
 
     def translate_brackets(self, left_term, right_term):
@@ -156,12 +167,22 @@ class CppGen(Gen):
 
         # for pow (left=( right=w)
         if right_term.name == 'w':
-            print(right_term)
+            logger.debug(right_term)
             self.pow_gen.set_base(right_term)
             # transform to cpp:
             left_out, right_out = self.pow_gen.print_cpp()
             left_term.cpp.out = left_out
             right_term.cpp.out = right_out
+
+        # for f (left=f right=))
+        if left_term.name == 'f':
+            logger.debug(left_term)
+            self.func_gen.set_base(left_term)
+            # transform to cpp:
+            left_out, right_out = self.func_gen.print_cpp()
+            left_term.cpp.out = left_out
+            right_term.cpp.out = right_out
+
         return((left_term, right_term))
 
     def add_out_to(self, term):
@@ -201,14 +222,22 @@ class CppGen(Gen):
             # transform to cpp:
             term.cpp.out = self.bdp_gen.print_cpp()
 
-        elif pattern == 'val_pattern':
+        elif pattern == 'var_pattern':
             # add data to term:
-            data = self.val_gen.set_base(term)
+            data = self.var_gen.set_base(term)
             if data is not None:
                 term.cpp.global_data = data
 
             # transform to cpp:
-            term.cpp.out = self.val_gen.print_cpp()
+            term.cpp.out = self.var_gen.print_cpp()
+
+        elif pattern == 'free_var_pattern':
+            
+            # extract var name:
+            self.free_var_gen.set_base(term)
+
+            # transform to cpp:
+            term.cpp.out = self.free_var_gen.print_cpp()
 
         elif pattern == 'coefs_pattern':
             # extract coeffs value from term
@@ -256,7 +285,7 @@ class CppGen(Gen):
         # like (U,V)-> (source[+0], source[+1])
         map_vti = dict(kwargs['vars_to_indexes'])
         self.diff_gen.set_vars_indexes(map_vti)
-        self.val_gen.set_vars_indexes(map_vti)
+        self.var_gen.set_vars_indexes(map_vti)
         self.bdp_gen.set_vars_indexes(map_vti)
 
     def set_coeffs_indexes(self, **kwargs):
@@ -264,77 +293,6 @@ class CppGen(Gen):
         # like (a,b)-> (params[+0], params[+1])
         map_cti = dict(kwargs['coeffs_to_indexes'])
         self.coeffs_gen.set_coeffs_indexes(map_cti)
-    
-
-def cpp(term):
-    # gen = CppGen(term)
-    return(term.lex[-1])
-
-
-class CppOutsForTerms():
-    '''
-    DESCRIPTION:
-    If pattern (termDemo) should contain
-    cpp out
-    then
-    there should exist function
-    (get_out_for_termDemo)
-    and 
-    if this function use some
-    parameters, they must exist
-    and initiated in params before.
-    (all that happened in Parser.py)
-    '''
-    # use varIndexs for all
-    # CppOutsForTerms objects
-    dataTermVarsSimpleGlobal = {'varIndexs': []}
-
-    def __init__(self, params):
-        self.params = params
-        
-        self.dataTermVarsPoint = []
-        self.dataTermVarsPointDelay = []
-        self.dataTermVarSimpleLocal = {'delays': [],
-                                       'varIndexs': []}
-        self.dataTermVarsSimpleIndep = {'delays': [],
-                                        'varIndexs': []}
-
-        #!!!self.diffGen = PureDerivGenerator(params)
-        self.dataTermOrder = {'indepVar': [],
-                              'order': []}
-        
-        self.dataTermVarsForDelay = {}
-        
-        self.dataTermMathFuncForDiffSpec = "empty_func"
-
-        self.dataTermRealForPower = {'real': []}
-
-        # for debugging:
-        self.dbg = True
-        self.dbgInx = 4
-
-    def get_out_for_term(self, termName):
-        '''
-        DESCRIPTION:
-        Find out for term (termDemo) with termName
-        (from Patterns.py). For that method with name
-        get_out_for_termDemo must exists.
-
-        INPUT:
-        termName - name of term like termVarsPoint1D
-
-        Return:
-        function replacer \f args: method(self, args)
-
-        Tests:
-        >>> f = cpp.get_out_for_term('diff');
-        >>> f()
-        '''
-        methods = self.__class__.__dict__
-        for methodName in methods.keys():
-            methodTermName = methodName.split('_')[-1]
-            if methodTermName == termName:
-                return(lambda *args: methods[methodName](self, *args))
 
 
 def test():
@@ -385,8 +343,8 @@ def test():
     # FOR Val pattern
     t = term()
     l = lex.Lex()
-    res = lex.re.search(l.val_pattern, 'U')
-    t.lex = [res.string, res, 'val_pattern']
+    res = lex.re.search(l.var_pattern, 'U')
+    t.lex = [res.string, res, 'var_pattern']
     print('term.lex:')
     print(t.lex)
 

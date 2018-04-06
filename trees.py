@@ -8,6 +8,13 @@ convert: parse_tree -> operator_tree
 bug with python
 
 '''
+import logging
+
+# create logger
+log_level = logging.INFO  # logging.DEBUG
+logging.basicConfig(level=log_level)
+logger = logging.getLogger('trees.py')
+logger.setLevel(level=log_level)
 
 
 def case_0(node):
@@ -222,7 +229,7 @@ def case_2(node, op_nodes):
         return(top_op_node)
 
 
-def convert(node):
+def convert(node, trace=0):
     
     '''Convert parse tree to operator's tree.'''
     
@@ -237,7 +244,7 @@ def convert(node):
 
     elif len(node.children) == 1 and not node.visited:
         # work with T->[a]
-        print("case_0")
+        logger.debug("case_0")
         succ = case_0(node)
     
     elif len(node.children) == 2:
@@ -256,20 +263,20 @@ def convert(node):
 
             if len(bps) > 0 and len(ars) == 0:
                 # work with F->['(', F1->[X, ')']]
-                print("case_3_0")
+                logger.debug("case_3_0")
                 succ = case_3_0(node)
             elif len(bps) > 0 and len(ars) > 0:
                 # work with F->['(', F1->[args, ')']]
-                print("case_3_1")
+                logger.debug("case_3_1")
                 succ = case_3_1(node)
 
             elif len(sps) > 0:
                 # work with A1->[',', arg]
-                print("case_4_0")
+                logger.debug("case_4_0")
                 succ = case_4_0(node)
             elif len(ars) > 0:
                 # work with A->[X, arg]
-                print("case_4_1")
+                logger.debug("case_4_1")
                 succ = case_4_1(node)
                 '''
                 elif len(ops) == 0 and len(bps) != 0:
@@ -278,19 +285,21 @@ def convert(node):
                 '''
             elif len(ops) == 0:  # and len(bps) == 0
                 # work with T->[a]
-                print("case_0")
+                logger.debug("case_0")
                 succ = case_0(node)
             elif len(ops) == 1:
                 # work with T->[a, *->[a]]
-                print("case_1")
+                logger.debug("case_1")
                 succ = case_1(node)
             elif len(ops) == 2:
                 # work with E->[*->[a,a], +->[a]]:
-                print("case_2")
-                print("len(ops): %s" % (str(len(ops))))
+                logger.debug("case_2")
+                logger.debug("len(ops): %s" % (str(len(ops))))
                 succ = case_2(node, ops)
-    print("\nsucc:")
-    print(succ)
-    print("succ.visited: ", succ.visited)
-    print("len(succ.children: )", len(succ.children))
+    logger.debug("\nsucc:")
+    logger.debug(succ)
+    logger.debug("succ.visited: ")
+    logger.debug(succ.visited)
+    logger.debug("len(succ.children: )")
+    logger.debug(len(succ.children))
     return(convert(succ))

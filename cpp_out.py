@@ -1,6 +1,14 @@
 from code_gens.cpp.deriv import PureDerivGenerator
 from code_gens.cpp.deriv import MixDerivGenerator
 
+import logging
+
+# create logger
+log_level = logging.INFO  # logging.DEBUG
+logging.basicConfig(level=log_level)
+logger = logging.getLogger('cpp_out.py')
+logger.setLevel(level=log_level)
+
 
 class Params():
     def __init__(self):
@@ -167,7 +175,7 @@ class Diff(Term):
         DESCRIPTION:
         self.params should be initiated first.
         '''
-        self.print_dbg("FROM diff:")
+        logger.debug("FROM diff:")
         if (self.params.diffMethod is None
             or self.params.diffType is None):
             raise(BaseException('set_diff_type first'))
@@ -183,14 +191,14 @@ class Diff(Term):
 
     def diff_pure_common(self):
         # for debug
-        self.print_dbg("diffType: pure, common")
+        logger.debug("diffType: pure, common")
         diffGen = PureDerivGenerator(self.params)
         out = diffGen.common_diff()
         return(out)
 
     def diff_pure_spec(self):
         # for debug
-        self.print_dbg("diffType: pure, spec")
+        logger.debug("diffType: pure, spec")
         diffGen = PureDerivGenerator(self.params)
         func = self.params.func
         out = diffGen.special_diff(func)
@@ -198,25 +206,25 @@ class Diff(Term):
 
     def diff_pure_ics(self):
         # for debug
-        self.print_dbg("diffType: pure, interconnect")
+        logger.debug("diffType: pure, interconnect")
         diffGen = PureDerivGenerator(self.params)
         out = diffGen.interconnect_diff()
         return(out)
 
     def diff_pure_vertex(self):
-        self.print_dbg("vertex not implemented")
+        logger.debug("vertex not implemented")
         return(None)
 
     def diff_mix_common(self):
         # for debug
-        self.print_dbg("diffType: pure, common")
+        logger.debug("diffType: pure, common")
         diffGen = MixDerivGenerator(self.params)
         out = diffGen.common_diff()
         return(out)
 
     def diff_mix_spec(self):
         # for debug
-        self.print_dbg("diffType: pure, spec")
+        logger.debug("diffType: pure, spec")
         diffGen = MixDerivGenerator(self.params)
         func = self.params.func
         out = diffGen.special_diff(func)
@@ -224,14 +232,14 @@ class Diff(Term):
 
     def diff_mix_ics(self):
         # for debug
-        self.print_dbg("diffType: pure, interconnect")
+        logger.debug("diffType: pure, interconnect")
         diffGen = MixDerivGenerator(self.params)
         out = diffGen.interconnect_diff()
         return(out)
 
     def diff_none(self):
         # for debug
-        self.print_dbg("diffMethod: None")
+        logger.debug("diffMethod: None")
         diffGen = PureDerivGenerator(self.params)
         func = self.params.func
         out = diffGen.diff(func)
@@ -311,7 +319,7 @@ class Bdp(Term):
                 + str(varIndex)+']'))
 
 
-class Val(Term):
+class Var(Term):
 
     def set_base(self, term):
 
@@ -373,6 +381,22 @@ class Val(Term):
                 + '+'+str(varIndex) + ']'))
 
 
+class FreeVar(Term):
+
+    def set_base(self, term):
+
+        '''Used for fill local data.
+        Extract var_name'''
+
+        self.var_name = term.name.lex[0]
+
+    def print_cpp(self):
+
+        '''x->idxX, y->idxY, z->idxZ '''
+
+        return("idx"+self.var_name.upper())
+
+
 class Coeffs(Term):
 
     def set_base(self, term):
@@ -424,3 +448,17 @@ class Pow(Term):
         right = "," + degree + ")"
         return(left, right)
 
+
+class Func(Term):
+
+    def set_base(self, term):
+
+        '''Used for fill local data'''
+
+        self.func_name = term.name.lex[0]
+        
+    def print_cpp(self):
+        
+        left = self.func_name
+        right = ")"
+        return(left, right)

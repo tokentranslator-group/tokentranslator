@@ -65,14 +65,25 @@ from op_to_out import map_tree, map_tree_postproc
 from replacer_cpp import CppGen
 from nodes import NodeCommon
 
+import logging
+
+# create logger
+log_level = logging.INFO  # logging.DEBUG
+logging.basicConfig(level=log_level)
+logger = logging.getLogger('equation.py')
+logger.setLevel(level=log_level)
+
 
 class Equation():
 
-    def __init__(self, sent):
+    def __init__(self, sent, trace=0):
         self.sent = sent
         self.tree_cpp_replacer = CppGen()
         self.prefix = []
         self.operator_tree = None
+
+        # for debugging:
+        self.trace = trace
 
     def convert_to_node(self):
 
@@ -95,12 +106,16 @@ class Equation():
         grammar_cnf = gm_to_cnf(gm_pow_f_args)  # grammar_pow_f
 
         # parse
+        logger.debug("for cyk:")
+        logger.debug(goal_sent)
         p, t = cyk(goal=goal_sent, grammar=grammar_cnf)
+        self.from_cyk = (p, t)
+
         # return(t)
         # convert parse tree to operator's tree:
         ot = convert(t)
         self.operator_tree = ot
-        print('\nresult:')
+
         return(ot)
 
     def parse(self):
@@ -122,6 +137,7 @@ class Equation():
         
         # tokenisation:
         sent = lex(sent=sent)
+        self.from_lex = sent
         # return(goal_sent)
 
         # work with prefix:
@@ -134,9 +150,10 @@ class Equation():
         if self.have_tree:
             # make operator tree:
             self._sym_step(self.kernel)
-            return(self.operator_tree)
+            logger.debug("operator tree:")
+            logger.debug(self.operator_tree)
         else:
-            return("trivial case without tree")
+            logger.debug("trivial case without tree")
 
     def _prefix_step(self, sent):
         
@@ -153,6 +170,7 @@ class Equation():
             # like eq: sin(x)
             self.prefix = []
             kernel = sent
+            self.kernel = kernel
 
         # for case sent = a (like s='U'):
         if len(kernel) == 1:
@@ -202,7 +220,15 @@ class Equation():
             prefix, kernel = self.map_cpp()
         elif key == 'original':
             prefix = self.prefix
-            kernel = self.kernel
+            if self.have_tree:
+                kernel = [self.operator_tree]
+            else:
+                kernel = self.kernel
+
+        logger.debug("prefix")
+        logger.debug(prefix)
+        logger.debug("kernel")
+        logger.debug(kernel)
 
         # ['(', 'a']
         out_prefix = [term.flatten(key)[0] for term in prefix]
@@ -212,8 +238,12 @@ class Equation():
         else:
             # [['a'], [')']]
             out_kernel = [term.flatten(key)[0] for term in kernel]
-        print(out_prefix)
-        print(out_kernel)
+
+        logger.debug("out_prefix")
+        logger.debug(out_prefix)
+        logger.debug("out_kernel")
+        logger.debug(out_kernel)
+
         out = out_prefix + out_kernel
         return("".join(out))
 
@@ -308,40 +338,53 @@ class Equation():
     # END FOR
 
 
+tests = [("(V(t-3.1)*U(t-3.1)+V(t-1.1)*U(t-3.1)+U(t-1.1))^3"
+          + "+cos(U-c*D[U,{x,2}])"),
+         ("U'=(V(t-3.1)*U(t-3.1)+V(t-1.1)*U(t-3.1)+U(t-1.1))^3"
+          + "+cos(U-c*D[U,{x,2}])"),
+         "U'=U",
+         "U'=-U",
+         "U'=-(U+V)",
+         "U",
+         "-(U(t-1.1)+V)",
+         "U'=-(U(t-1.1)+V)",
+         "f(x, y,)+g(y,z,)+h(x,z,)"]
+
+
 def test():
     
-    tests = ['(a)', '(a+a)', 'a*(a+a)', 'a+(a+a)*a',
-             'fa,a,a,)', 'fa)', 'fa,)']
-
     eqs = [Equation(test) for test in tests]
 
-    outs = []
+    for _id, eq in enumerate(eqs):
+        print("\n=== test %s: %s ===" % (_id, tests[_id]))
+        try:
+            eq.parse()
+        except:
+            print(eq.from_lex)
+            print(eq.from_cyk)
 
-    for eq in eqs:
-        eq.parse()
         eq.set_default()
-        outs.append(eq.flatten('original'))
+
+        print('\noriginal:')
+        eq.show_original()
+
+        print('\ncpp:')
+        eq.show_cpp()
 
         '''
         try:
-            outs.append(eq._sym_step(test))
+
         except:
             outs.append("fail for %s " % (test))
         '''
-    print("\nouts:")
-    for out in outs:
-        print(out)
 
 
 def test_1():
-    '''Test tree chengings.
     '''
-    input_word_lex_func = "(V(t-3.1)*U(t-3.1)+V(t-1.1)*U(t-3.1)+U(t-1.1))^3+cos(U-c*D[U,{x,2}])"
-    eq = Equation(input_word_lex_func)
-    eq.set_default()
-    eq.parse()
-    # return(eq)
-    # cpp_fl = flatten(eq.operator_tree, eq.tree_cpp_replacer)
+    outs.append(eq.flatten('original')
+    outs.append(eq._sym_step(test))
+
+    cpp_fl = flatten(eq.operator_tree, eq.tree_cpp_replacer)
     cpp_fl = eq.operator_tree.flatten('cpp')
     cpp_map = map_tree(eq.operator_tree, eq.tree_cpp_replacer)
     cpp_map_postproc = map_tree_postproc(cpp_map, eq.tree_cpp_replacer)
@@ -354,7 +397,9 @@ def test_1():
     return(cpp_map_postproc)
     return(cpp_map)
     return(cpp_fl)
+    '''
+    pass
 
 
 if __name__ == '__main__':
-    test_1()
+    test()
