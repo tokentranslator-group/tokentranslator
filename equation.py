@@ -61,11 +61,8 @@ from grammars import gm_pow_f_args
 from lex import lex
 from cyk import cyk
 from trees import convert
-from op_to_out import flatten
 from op_to_out import map_tree, map_tree_postproc
-# from replacer import lex_replacer
 from replacer_cpp import CppGen
-from words import Word
 from nodes import NodeCommon
 
 
@@ -200,8 +197,12 @@ class Equation():
 
         '''Return list of term as key.
         Key either original or cpp.'''
-
-        prefix, kernel = self.map_cpp()
+        
+        if key == 'cpp':
+            prefix, kernel = self.map_cpp()
+        elif key == 'original':
+            prefix = self.prefix
+            kernel = self.kernel
 
         # ['(', 'a']
         out_prefix = [term.flatten(key)[0] for term in prefix]
@@ -308,18 +309,19 @@ class Equation():
 
 
 def test():
-    sa = 'a*(a+fa,a,a,))'
-    eq = Equation(sa)
-
+    
     tests = ['(a)', '(a+a)', 'a*(a+a)', 'a+(a+a)*a',
-             sa, 'fa)', 'fa,)']
+             'fa,a,a,)', 'fa)', 'fa,)']
 
-    # sym tests:
+    eqs = [Equation(test) for test in tests]
+
     outs = []
 
-    for test in tests:
-        op_tree = eq._sym_step(test)
-        flat = flatten(op_tree, eq.tree_cpp_replacer)
+    for eq in eqs:
+        eq.parse()
+        eq.set_default()
+        outs.append(eq.flatten('original'))
+
         '''
         try:
             outs.append(eq._sym_step(test))
@@ -339,7 +341,8 @@ def test_1():
     eq.set_default()
     eq.parse()
     # return(eq)
-    cpp_fl = flatten(eq.operator_tree, eq.tree_cpp_replacer)
+    # cpp_fl = flatten(eq.operator_tree, eq.tree_cpp_replacer)
+    cpp_fl = eq.operator_tree.flatten('cpp')
     cpp_map = map_tree(eq.operator_tree, eq.tree_cpp_replacer)
     cpp_map_postproc = map_tree_postproc(cpp_map, eq.tree_cpp_replacer)
 
