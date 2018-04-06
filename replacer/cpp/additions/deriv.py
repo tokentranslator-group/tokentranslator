@@ -27,8 +27,8 @@ secondIndexSTR
 
 '''
 import sys
-from code_gens.cpp.someFuncs import NewtonBinomCoefficient
-from code_gens.cpp.someFuncs import generateCodeForMathFunction
+from replacer.cpp.additions.someFuncs import NewtonBinomCoefficient
+from replacer.cpp.additions.someFuncs import generateCodeForMathFunction
 
 '''
 # python 2 or 3

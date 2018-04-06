@@ -1,9 +1,9 @@
-from cpp_out import Params
-from cpp_out import Diff, Var, FreeVar
-from cpp_out import Coeffs, Bdp, Pow, Func
-from cpp_out import delay_postproc
-from replacer import Gen
-from copy import deepcopy as copy
+from replacer.cpp.cpp_out import Params
+from replacer.cpp.cpp_out import Diff, Var, FreeVar
+from replacer.cpp.cpp_out import Coeffs, Bdp, Pow, Func
+from replacer.cpp.cpp_out import delay_postproc
+from replacer.replacer import Gen
+
 
 import logging
 

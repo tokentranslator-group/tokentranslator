@@ -13,7 +13,7 @@ Examples:
 '''
 import re
 from functools import reduce
-from words import Word
+from tokenizer.words import Word
 
 
 def preproc(sent):

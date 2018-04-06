@@ -13,7 +13,7 @@ import logging
 # create logger
 log_level = logging.INFO  # logging.DEBUG
 logging.basicConfig(level=log_level)
-logger = logging.getLogger('trees.py')
+logger = logging.getLogger('tree_converter.py')
 logger.setLevel(level=log_level)
 
 

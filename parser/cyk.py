@@ -18,8 +18,7 @@ else
   I is not member of language
 '''
 # from nodes import Node, copy_node
-from nodes import NodeR as Node, copy_node
-from words import Word, simple_words
+from tree.nodes import NodeR as Node, copy_node
 '''
 FOR
    E -> E+T|T

@@ -1,5 +1,5 @@
-from code_gens.cpp.deriv import PureDerivGenerator
-from code_gens.cpp.deriv import MixDerivGenerator
+from replacer.cpp.additions.deriv import PureDerivGenerator
+from replacer.cpp.additions.deriv import MixDerivGenerator
 
 import logging
 

@@ -55,15 +55,17 @@
     END OF Algorithm.
 
 '''
-from grammars import gm_to_cnf
-from grammars import grammar_pow_f
-from grammars import gm_pow_f_args
-from lex import lex
-from cyk import cyk
-from trees import convert
-from op_to_out import map_tree, map_tree_postproc
-from replacer_cpp import CppGen
-from nodes import NodeCommon
+from parser.grammars import gm_to_cnf
+from parser.grammars import gm_pow_f_args
+from tokenizer.lex import lex
+from parser.cyk import cyk
+from tree.tree_converter import convert
+from tree.maps import map_tree, map_tree_postproc
+from replacer.cpp.replacer_cpp import CppGen
+from tree.nodes import NodeCommon
+
+import sys
+import inspect
 
 import logging
 
@@ -72,6 +74,17 @@ log_level = logging.INFO  # logging.DEBUG
 logging.basicConfig(level=log_level)
 logger = logging.getLogger('equation.py')
 logger.setLevel(level=log_level)
+
+logger.info('sys.path')
+logger.info(sys.path)
+
+'''
+# add import's path:
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
+print(parentdir) 
+'''
 
 
 class Equation():
@@ -273,7 +286,7 @@ class Equation():
 
         self.set_vars_indexes(vars_to_indexes=[('U', 0), ('V', 1)])
 
-        coeffs_to_indexes = [('a', 0), ('b', 1), ('c', 2)]
+        coeffs_to_indexes = [('a', 0), ('b', 1), ('c', 2), ('r', 3)]
         self.set_coeffs_indexes(coeffs_to_indexes=coeffs_to_indexes)
 
         self.set_diff_type(diffType='pure',
@@ -336,70 +349,3 @@ class Equation():
         self.tree_cpp_replacer.set_coeffs_indexes(**kwargs)
 
     # END FOR
-
-
-tests = [("(V(t-3.1)*U(t-3.1)+V(t-1.1)*U(t-3.1)+U(t-1.1))^3"
-          + "+cos(U-c*D[U,{x,2}])"),
-         ("U'=(V(t-3.1)*U(t-3.1)+V(t-1.1)*U(t-3.1)+U(t-1.1))^3"
-          + "+cos(U-c*D[U,{x,2}])"),
-         "U'=U",
-         "U'=-U",
-         "U'=-(U+V)",
-         "U",
-         "-(U(t-1.1)+V)",
-         "U'=-(U(t-1.1)+V)",
-         "f(x, y,)+g(y,z,)+h(x,z,)"]
-
-
-def test():
-    
-    eqs = [Equation(test) for test in tests]
-
-    for _id, eq in enumerate(eqs):
-        print("\n=== test %s: %s ===" % (_id, tests[_id]))
-        try:
-            eq.parse()
-        except:
-            print(eq.from_lex)
-            print(eq.from_cyk)
-
-        eq.set_default()
-
-        print('\noriginal:')
-        eq.show_original()
-
-        print('\ncpp:')
-        eq.show_cpp()
-
-        '''
-        try:
-
-        except:
-            outs.append("fail for %s " % (test))
-        '''
-
-
-def test_1():
-    '''
-    outs.append(eq.flatten('original')
-    outs.append(eq._sym_step(test))
-
-    cpp_fl = flatten(eq.operator_tree, eq.tree_cpp_replacer)
-    cpp_fl = eq.operator_tree.flatten('cpp')
-    cpp_map = map_tree(eq.operator_tree, eq.tree_cpp_replacer)
-    cpp_map_postproc = map_tree_postproc(cpp_map, eq.tree_cpp_replacer)
-
-    print("original:")
-    print(cpp_map_postproc.flatten('original'))
-    print("cpp:")
-    print(cpp_map_postproc.flatten('cpp'))
-
-    return(cpp_map_postproc)
-    return(cpp_map)
-    return(cpp_fl)
-    '''
-    pass
-
-
-if __name__ == '__main__':
-    test()
