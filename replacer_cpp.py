@@ -58,10 +58,7 @@ class CppGen(Gen):
         converted_delay : source[converted_delay][0]
         delay_data[0] - number of delay's term U(t-1.3)
                         in all delays terms.
-
-
         '''
-
         def convert_delays(delays):
 
             '''Convert float delay to int,
@@ -233,6 +230,12 @@ class CppGen(Gen):
         elif pattern == 'float_pattern':
             # transform to cpp:
             term.cpp.out = term.name.lex[0]
+        else:
+            term = self.default_action(term)
+        return(term)
+
+    def default_action(self, term):
+        term.cpp.out = term.name.lex[0]
         return(term)
 
     def set_dim(self, **kwargs):

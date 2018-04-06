@@ -65,14 +65,31 @@ from op_to_out import flatten
 from op_to_out import map_tree, map_tree_postproc
 # from replacer import lex_replacer
 from replacer_cpp import CppGen
+from words import Word
+from nodes import NodeCommon
 
 
 class Equation():
 
     def __init__(self, sent):
         self.sent = sent
-        self.cpp_replacer = CppGen()
+        self.tree_cpp_replacer = CppGen()
+        self.prefix = []
+        self.operator_tree = None
 
+    def convert_to_node(self):
+
+        '''Convert Word to node like object.
+        For cpp replacing.
+        For prefix and trivial kernel'''
+
+        # convert prefix:
+        self.prefix = [NodeCommon(char) for char in self.prefix]
+        
+        # convert trivial kernel:
+        if not self.have_tree:  # type(self.kernel) == list:
+            self.kernel = [NodeCommon(char) for char in self.kernel]
+            
     def _sym_step(self, goal_sent):
 
         '''Transform list of Word's into operation's tree'''
@@ -85,44 +102,9 @@ class Equation():
         # return(t)
         # convert parse tree to operator's tree:
         ot = convert(t)
-
+        self.operator_tree = ot
         print('\nresult:')
         return(ot)
-
-    def _transform_sent_to_tree(self, sent):
-
-        '''Transform string s into parser tree, then
-        operation tree, then convert result by replacing
-        all lexem with it's values'''
-
-        # lexical step:
-        goal_sent = lex(sent=sent)
-
-        lex_replacer = self.cpp_replacer
-
-        # for case goal_sent = a (like s='U'):
-        if len(goal_sent) == 1:
-            res = flatten(goal_sent, lex_replacer)
-            return(res)
-
-        # for case like goal_sent = -(a+ ...) or -a
-        if goal_sent[0] == '-':
-            if len(goal_sent) == 2:
-                # like -a:
-                res = flatten(goal_sent, lex_replacer)
-                return(res)
-            else:
-                # like -(a+a)
-                prefix, goal_sent = goal_sent[0], goal_sent[1:]
-                ot = self._sym_step(goal_sent)
-                res = flatten(ot, lex_replacer)
-                return(prefix+res)
-
-        # for all other cases:
-        ot = self._sym_step(goal_sent)
-        self.operator_tree = ot
-        res = flatten(ot, lex_replacer)
-        return(res)
 
     def parse(self):
 
@@ -134,70 +116,148 @@ class Equation():
         Return:
         converted sent.
         '''
+        self.prefix = []
+        self.kernel = []
+
         sent = self.sent
         # remove spaces:
         sent = sent.replace(' ', "")
+        
+        # tokenisation:
+        sent = lex(sent=sent)
+        # return(goal_sent)
 
-        # work with equations
+        # work with prefix:
+        self._prefix_step(sent)
+
+        # convert prefix and trivial cases
+        # to term like objects (for replacer):
+        self.convert_to_node()
+        
+        if self.have_tree:
+            # make operator tree:
+            self._sym_step(self.kernel)
+            return(self.operator_tree)
+        else:
+            return("trivial case without tree")
+
+    def _prefix_step(self, sent):
+        
+        self.have_tree = True
+
         if '=' in sent:
             # like eq: U'= sin(x)
-            prefix, sent = sent.split('=')
-            prefix = prefix + '='
+            prefix = sent[:sent.index('=')-1]
+            kernel = sent[sent.index('=')+1:]
+            self.prefix.extend(prefix)
+            self.prefix.append('=')
+            self.kernel = kernel
         else:
             # like eq: sin(x)
-            prefix = ""
+            self.prefix = []
+            kernel = sent
 
-        # main work:
-        sent_out_list = self._transform_sent_to_tree(sent)
-
-        # put prefix back:
-        res = [prefix]+sent_out_list
-        self.result = res
-
-    def show(self):
-        # print("self.result")
-        # print(self.result)
+        # for case sent = a (like s='U'):
+        if len(kernel) == 1:
+            self.kernel = kernel
+            self.have_tree = False
             
-        # try:
-        '''
-        s = []
-        d = []
-        for term in self.result:
-            try:
-                d.append(term.global_data)
-            except:
-                pass
-            try:
-                try:
-                    index = term.global_data['delay']
-                    s.append([term.out, index])
-                except:
-                    if type(term) == str:
-                        s.append(term)
-                    else:
-                        s.append(term.out)
-            except:
-                
-                s.append(term.name)
-        print("global_data")
-        print(d)
-        print("\neq result:")
-        print(s)
-        '''
-        '''
-        except:
-            raise(BaseException('result not redy: use parse first'))
-        '''
+        # for case like goal_sent = -(a+ ...) or -a
+        if kernel[0] == '-':
+            if len(kernel) == 2:
+                # like -a:
+                self.prefix.append('-')
+                self.kernel = kernel[1:]
+                self.have_tree = False
+            else:
+                # like -(a+a)
+                self.prefix.append(kernel[0])
+                self.kernel = kernel[1:]
+
+    def map_cpp(self):
+
+        '''Add cpp out to self.prefix and self.operator_tree
+        or self.kernel (if tree is trivial)'''
+
+        cpp_map_prefix = [map_tree(term, self.tree_cpp_replacer)
+                          for term in self.prefix]
+        cpp_map_prefix_post = [map_tree_postproc(term, self.tree_cpp_replacer)
+                               for term in cpp_map_prefix]
+        if self.have_tree:
+            
+            cpp_map = map_tree(self.operator_tree, self.tree_cpp_replacer)
+            cpp_map_postproc = map_tree_postproc(cpp_map,
+                                                 self.tree_cpp_replacer)
+            return(cpp_map_prefix_post, [cpp_map_postproc])
+        else:
+            cpp_map_kernel = [map_tree(term, self.tree_cpp_replacer)
+                              for term in self.kernel]
+            cpp_map_ker_p = [map_tree_postproc(term, self.tree_cpp_replacer)
+                             for term in cpp_map_kernel]
+            return(cpp_map_prefix_post, cpp_map_ker_p)
+
+    def flatten(self, key):
+
+        '''Return list of term as key.
+        Key either original or cpp.'''
+
+        prefix, kernel = self.map_cpp()
+
+        # ['(', 'a']
+        out_prefix = [term.flatten(key)[0] for term in prefix]
+        if self.have_tree:
+            # [['(', 'a']]
+            out_kernel = [term.flatten(key) for term in kernel][0]
+        else:
+            # [['a'], [')']]
+            out_kernel = [term.flatten(key)[0] for term in kernel]
+        print(out_prefix)
+        print(out_kernel)
+        out = out_prefix + out_kernel
+        return("".join(out))
+
+    def show_original(self):
+        print(self.flatten("original"))
+
+    def show_cpp(self):
+        print(self.flatten('cpp'))
+
+    def show_tree_original(self):
+        if self.have_tree:
+            self.operator_tree.show_original()
+    
+    def show_tree_cpp_out(self):
+        if self.have_tree:
+            self.operator_tree.show_cpp_out()
+        
+    def show_tree_cpp_data(self):
+        if self.have_tree:
+            self.operator_tree.show_cpp_data()
+
     # FOR set out cpp parameters:
+
+    def set_default(self):
+        self.set_dim(dim=2)
+        self.set_blockNumber(blockNumber=0)
+
+        self.set_vars_indexes(vars_to_indexes=[('U', 0), ('V', 1)])
+
+        coeffs_to_indexes = [('a', 0), ('b', 1), ('c', 2)]
+        self.set_coeffs_indexes(coeffs_to_indexes=coeffs_to_indexes)
+
+        self.set_diff_type(diffType='pure',
+                           diffMethod='common')
+        self.set_point(point=[3, 3])
+
     def set_dim(self, **kwargs):
 
         '''dim=2'''
 
-        self.cpp_replacer.set_dim(**kwargs)
+        self.tree_cpp_replacer.set_dim(**kwargs)
     
     def set_blockNumber(self, **kwargs):
         '''blockNumber=0'''
-        self.cpp_replacer.set_blockNumber(**kwargs)
+        self.tree_cpp_replacer.set_blockNumber(**kwargs)
 
     def set_vars_indexes(self, **kwargs):
 
@@ -208,7 +268,7 @@ class Equation():
         vars_to_indexes=[('U', 0), ('V', 1)]
         '''
 
-        self.cpp_replacer.set_vars_indexes(**kwargs)
+        self.tree_cpp_replacer.set_vars_indexes(**kwargs)
         
     def set_diff_type(self, **kwargs):
 
@@ -223,7 +283,7 @@ class Equation():
            side=0, firstIndex=0, secondIndexSTR=1
         '''
 
-        self.cpp_replacer.set_diff_type(**kwargs)
+        self.tree_cpp_replacer.set_diff_type(**kwargs)
 
     def set_point(self, **kwargs):
 
@@ -232,7 +292,7 @@ class Equation():
         Input:
         point=[3, 3]'''
 
-        self.cpp_replacer.set_point(**kwargs)
+        self.tree_cpp_replacer.set_point(**kwargs)
         
     def set_coeffs_indexes(self, **kwargs):
 
@@ -242,7 +302,7 @@ class Equation():
         Input:
         coeffs_to_indexes=[('a', 0), ('b', 1)]
         '''
-        self.cpp_replacer.set_coeffs_indexes(**kwargs)
+        self.tree_cpp_replacer.set_coeffs_indexes(**kwargs)
 
     # END FOR
 
@@ -259,7 +319,7 @@ def test():
 
     for test in tests:
         op_tree = eq._sym_step(test)
-        flat = flatten(op_tree, eq.cpp_replacer)
+        flat = flatten(op_tree, eq.tree_cpp_replacer)
         '''
         try:
             outs.append(eq._sym_step(test))
@@ -276,24 +336,12 @@ def test_1():
     '''
     input_word_lex_func = "(V(t-3.1)*U(t-3.1)+V(t-1.1)*U(t-3.1)+U(t-1.1))^3+cos(U-c*D[U,{x,2}])"
     eq = Equation(input_word_lex_func)
-
-    eq.set_dim(dim=2)
-    eq.set_blockNumber(blockNumber=0)
-
-    eq.set_vars_indexes(vars_to_indexes=[('U', 0), ('V', 1)])
-
-    coeffs_to_indexes = [('a', 0), ('b', 1), ('c', 2)]
-    eq.set_coeffs_indexes(coeffs_to_indexes=coeffs_to_indexes)
-
-    eq.set_diff_type(diffType='pure',
-                     diffMethod='common')
-    eq.set_point(point=[3, 3])
-
+    eq.set_default()
     eq.parse()
     # return(eq)
-    cpp_fl = flatten(eq.operator_tree, eq.cpp_replacer)
-    cpp_map = map_tree(eq.operator_tree, eq.cpp_replacer)
-    cpp_map_postproc = map_tree_postproc(cpp_map, eq.cpp_replacer)
+    cpp_fl = flatten(eq.operator_tree, eq.tree_cpp_replacer)
+    cpp_map = map_tree(eq.operator_tree, eq.tree_cpp_replacer)
+    cpp_map_postproc = map_tree_postproc(cpp_map, eq.tree_cpp_replacer)
 
     print("original:")
     print(cpp_map_postproc.flatten('original'))

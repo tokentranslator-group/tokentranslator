@@ -12,14 +12,13 @@ class Gen():
     def __call__(self, term):
 
         '''Check if term is Word and if it is, call
-        add_out_to method.
+        add_out_to method for simple nodes,
+        translate_brackets for brackets.
 
+        Input:
+           term must be of type Word
         Return:
-           term if type(term) == str (like '+')
-           cpp(term) if type(term) == Word (like 'D[U,{x,3}]')
-           [cpp(tm) for tm in term] if type(term) == list.
-                                       (like ['(', 'w']
-                                        or ['f',')']'''
+           cpp(term) if type(term) == Word (like 'D[U,{x,3}]')'''
 
         if(term.name == 'br'):  # type(term.name) == Word and
             # for branches (a+...)^3 or sin(a+...):

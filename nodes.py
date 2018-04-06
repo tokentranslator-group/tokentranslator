@@ -363,6 +363,14 @@ class NodeR(Node):
         return(self.find_one(lambda name: name in self.trs))
 
 
+class NodeCommon(NodeR):
+
+    ''' Node for Word' representation'''
+
+    def __init__(self, name):
+        NodeR.__init__(self, [None, name])
+
+
 def copy_node(node: NodeR)->NodeR:
     new_node = NodeR(rule=node.rule,
                      parent=node.parent,

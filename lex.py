@@ -214,13 +214,13 @@ def lex(sent="a+U*U*V+D[V,{y,1}]-c*D[U,{x,2}]"):
 
     lex sent =
       case find_pattern(sent, patterns) of
-           [left, pattern, right] -> sent(left)+sent(pattern)+sent(right)
-           [left, pattern] -> sent(left)+sent(pattern)
-           [pattern, right] -> sent(pattern)+sent(right)
+           [left, pattern, right] -> lex(left)+Word(pattern)+lex(right)
+           [left, pattern] -> lex(left)+Word(pattern)
+           [pattern, right] -> Word(pattern)+lex(right)
            otherwise -> list(sent)
       where
             -- return list of remained words:
-            find_pattern sent [] = list(sent)
+            find_pattern sent [] = [Word(char) for char in sent]
             
             -- return res or try with others patterns:
             find_pattern sent [x:xs] = if res=re.find(x, sent) then res
@@ -228,9 +228,9 @@ def lex(sent="a+U*U*V+D[V,{y,1}]-c*D[U,{x,2}]"):
 
     Input: string without spaces.
 
-    Return: list[elms] where elems either str or Word
-            and if Word, elms.lex = ['found lexem', re.match object]
-
+    Return: list[elms] where elems is Word
+            if pattern found then elms.lex = ['found lexem', re.match object]
+            else then elms.lex = [elms.name] where name is original char.
     Tests:
     >>> t = lex("a+U*U*V+D[V,{y,1}]-c*D[U,{x,2}]");t
     ['a', '+', 'a', '*', 'a', '*', 'a', '+', 'a', '-', 'a', '*', 'a']
@@ -279,4 +279,5 @@ def lex(sent="a+U*U*V+D[V,{y,1}]-c*D[U,{x,2}]"):
                     # [left, X]
                     return(left + X)
     # if no pattern found split remained:
-    return(list(sent))
+    # return(list(sent))
+    return([Word(char, [char, None, None]) for char in sent])

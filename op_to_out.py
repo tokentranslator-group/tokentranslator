@@ -67,7 +67,8 @@ def flatten_tree(op_tree, node_replacer):
 
 
 def flatten(o, lex_replacer):
-    
+    # depricated
+    # use map_tree and node.flatten instead
     if type(o) == list:
         # for case goal_sent = a (like s='U'):
         out = lex_replacer(o[0])
@@ -81,6 +82,9 @@ def flatten(o, lex_replacer):
 
 
 def map_tree(tree, node_replacer):
+
+    '''Use node_raplacer for each node to add cpp
+    output'''
 
     if len(tree.children) == 0:
         # finish:
