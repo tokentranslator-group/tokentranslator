@@ -132,11 +132,20 @@ class NodeR(Node):
             except AttributeError:
                 out = _self.name
             return(out)
-            
+
+        def gen_rand(_self):
+            try:
+                out = _self.rand
+            except AttributeError:
+                out = _self.name
+            return(out)
+
         if key == 'original':
             return(self._flatten(gen_orig))
         elif key == 'cpp':
             return(self._flatten(gen_cpp_out))
+        elif key == 'rand':
+            return(self._flatten(gen_rand))
         else:
             BaseException("key not supported")
 

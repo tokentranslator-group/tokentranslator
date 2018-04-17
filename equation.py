@@ -55,10 +55,10 @@
     END OF Algorithm.
 
 '''
-from parser.grammars import gm_to_cnf
-from parser.grammars import gm_pow_f_args
+from parse.grammars import gm_to_cnf
+from parse.grammars import gm_pow_f_args
 from tokenizer.lex import lex
-from parser.cyk import cyk
+from parse.cyk import cyk
 from tree.tree_converter import convert
 from tree.maps import map_tree, map_tree_postproc
 from replacer.cpp.replacer_cpp import CppGen
@@ -66,11 +66,12 @@ from tree.nodes import NodeCommon
 
 import sys
 import inspect
+import random
 
 import logging
 
 # create logger
-log_level = logging.INFO  # logging.DEBUG
+log_level = logging.DEBUG  # logging.DEBUG
 logging.basicConfig(level=log_level)
 logger = logging.getLogger('equation.py')
 logger.setLevel(level=log_level)
@@ -129,7 +130,103 @@ class Equation():
         ot = convert(t)
         self.operator_tree = ot
 
+        # extract variables from tree:
+        self.get_args()
+
         return(ot)
+
+    def sampling(self):
+
+        '''Generate value for each arg in self.args.
+        Used self.args[val].rand_gen for each value. (default is
+        set in Equation.get_args)
+        After that Equation.flatten('rand') can be used to generate
+        whole equation.
+
+        Example:
+        >>> e = Equation("f(x+y)")
+        >>> e.parse()
+        >>> e.sampling()
+        >>> e.flatten('rand')
+        sin(0.2699527968481269+0.6823613609913871+0.2699527968481269)
+        >>> e.sampling()
+        >>> e.flatten('rand')
+        sin(0.7021609513068388+0.9301007659964816+0.7021609513068388)
+        '''
+
+        for arg_key in self.args.keys():
+            val = self.args[arg_key].rand_gen()
+            for node in self.args[arg_key].nodes:
+                node.rand = str(val)
+
+    def get_args(self):
+
+        '''Extract variables from tree.
+        For now only work with func_pattern and free_var_pattern
+
+        Example:
+        for f(x+y) make self.args for f, x, y.
+        They must be alredy recognized by lex.
+        it add simple rand_gen to each self.args, that
+        used to generate it's values (in self.sampling method).
+        
+        Example:
+        >>> e = Equation('f(x+y+x)+f(x)+g(z)')
+        >>> e.parse()
+        >>> e.args
+        {'f': func_pattern, rand: cos(, nodes count: 2,
+         'g': func_pattern, rand: sin(, nodes count: 1,
+         'x': free_var_pattern, rand: 0.9204389089496596, nodes count: 3,
+         'y': free_var_pattern, rand: 0.08279757240786934, nodes count: 1,
+         'z': free_var_pattern, rand: 0.3454996936754938, nodes count: 1}
+        '''
+        self.args = {}
+
+        class Arg():
+
+            '''Represent arguments of sent with they data.
+            f(x+y)-> f, x, y'''
+
+            def __init__(self, name, pattern, node,
+                         rand_gen):
+                self.name = name
+                self.pattern = pattern
+                self.rand_gen = rand_gen
+
+                self.nodes = [node]
+
+            def __repr__(self):
+                s = "%s, rand: %s, nodes count: %s" % (str(self.pattern),
+                                                       str(self.rand_gen()),
+                                                       str(len(self.nodes)))
+                return(s)
+
+        for node in self.operator_tree:
+            try:
+                val, _, pattern = node.name.lex
+                if pattern == 'func_pattern':
+                    val = val[:-1]
+
+                    def rand_gen():
+                        return(str(random.choice(['sin(', 'cos('])))
+                        
+                elif pattern == 'free_var_pattern':
+                    val = val
+
+                    def rand_gen():
+                        return(str(random.random()))
+                else:
+                    # not use other patterns:
+                    continue
+                
+                if val in self.args.keys():
+                    self.args[val].nodes.append(node)
+                else:
+                    self.args[val] = Arg(val, pattern, node,
+                                         rand_gen)
+                    
+            except AttributeError:
+                pass
 
     def parse(self):
 
@@ -232,6 +329,12 @@ class Equation():
         if key == 'cpp':
             prefix, kernel = self.map_cpp()
         elif key == 'original':
+            prefix = self.prefix
+            if self.have_tree:
+                kernel = [self.operator_tree]
+            else:
+                kernel = self.kernel
+        elif key == 'rand':
             prefix = self.prefix
             if self.have_tree:
                 kernel = [self.operator_tree]
