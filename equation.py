@@ -62,11 +62,14 @@ from parse.cyk import cyk
 from tree.tree_converter import convert
 from tree.maps import map_tree, map_tree_postproc
 from replacer.cpp.replacer_cpp import CppGen
+from replacer.sympy.replacer_sympy import SympyGen
 from tree.nodes import NodeCommon
 
 import sys
 import inspect
 import random
+
+import sympy
 
 import logging
 
@@ -91,8 +94,11 @@ print(parentdir)
 class Equation():
 
     def __init__(self, sent, trace=0):
-        self.sent = sent
+        # remove spaces:
+        self.sent = sent.replace(' ', "")
+
         self.tree_cpp_replacer = CppGen()
+        self.sympy_replacer = SympyGen()
         self.prefix = []
         self.operator_tree = None
 
@@ -101,16 +107,26 @@ class Equation():
 
     def convert_to_node(self):
 
-        '''Convert Word to node like object.
-        For cpp replacing.
-        For prefix and trivial kernel'''
+        '''Get eq_left, eq_mid, eq_right = self.eq
+        it convert eq_left and eq_right to
+        operator_tree, then convert eq_mid to Node like objects,
+        then unite all to single Node like object.'''
 
-        # convert prefix:
-        self.prefix = [NodeCommon(char) for char in self.prefix]
+        eq_left, eq_mid, eq_right = self.eq
+        if eq_left is not None:
+            eq_left = self._sym_step(eq_left)
+        if eq_right is not None:
+            eq_right = self._sym_step(eq_right)
+        if eq_mid is not None:
+            eq_mid = NodeCommon("".join(eq_mid))
+            eq_mid.children = [eq_right, eq_left]
+            eq_tree = eq_mid
+        else:
+            # if equation not like U'=sin(U) but
+            # like sin(U)
+            eq_tree = eq_right
         
-        # convert trivial kernel:
-        if not self.have_tree:  # type(self.kernel) == list:
-            self.kernel = [NodeCommon(char) for char in self.kernel]
+        self.eq_tree = eq_tree
             
     def _sym_step(self, goal_sent):
 
@@ -129,9 +145,6 @@ class Equation():
         # convert parse tree to operator's tree:
         ot = convert(t)
         self.operator_tree = ot
-
-        # extract variables from tree:
-        self.get_args()
 
         return(ot)
 
@@ -155,9 +168,12 @@ class Equation():
         '''
 
         for arg_key in self.args.keys():
-            val = self.args[arg_key].rand_gen()
-            for node in self.args[arg_key].nodes:
-                node.rand = str(val)
+            try:
+                val = self.args[arg_key].rand_gen()
+                for node in self.args[arg_key].nodes:
+                    node.rand = str(val)
+            except AttributeError:
+                continue
 
     def get_args(self):
 
@@ -188,20 +204,30 @@ class Equation():
             f(x+y)-> f, x, y'''
 
             def __init__(self, name, pattern, node,
-                         rand_gen):
+                         rand_gen=None, sympy_gen=None):
                 self.name = name
                 self.pattern = pattern
-                self.rand_gen = rand_gen
+                if rand_gen is not None:
+                    self.rand_gen = rand_gen
+                if sympy_gen is not None:
+                    self.sympy_gen = sympy_gen
 
                 self.nodes = [node]
 
             def __repr__(self):
-                s = "%s, rand: %s, nodes count: %s" % (str(self.pattern),
-                                                       str(self.rand_gen()),
-                                                       str(len(self.nodes)))
+                s = "%s, nodes count: %s" % (str(self.pattern),
+                                             str(len(self.nodes)))
+                try:
+                    s = s + " rand: %s" % (str(self.rand_gen()))
+                except AttributeError:
+                    pass
+                try:
+                    s = s + " sympy: %s" % (self.sympy_gen)
+                except AttributeError:
+                    pass
                 return(s)
 
-        for node in self.operator_tree:
+        for node in self.eq_tree:
             try:
                 val, _, pattern = node.name.lex
                 if pattern == 'func_pattern':
@@ -210,11 +236,35 @@ class Equation():
                     def rand_gen():
                         return(str(random.choice(['sin(', 'cos('])))
                         
+                    # sympy_gen = "%s = sympy.%s" % (val, val)
+                    sympy_gen = None
+
+                elif (pattern == 'diff_pattern'
+                      or pattern == 'diff_time_var_pattern'):
+                    reg_pattern = node.name.lex[1]
+            
+                    # diff var (U):
+                    var = reg_pattern.group('val')
+                    rand_gen = None
+                    sympy_gen = "%s = sympy.symbols('%s')" % (var[0], var[0])
+
+                elif pattern == 'var_pattern':
+                    rand_gen = None
+                    sympy_gen = "%s = sympy.symbols('%s')" % (val[0], val[0])
+
                 elif pattern == 'free_var_pattern':
                     val = val
 
                     def rand_gen():
-                        return(str(random.random()))
+                        return("%.3f" % random.random())
+
+                    sympy_gen = "%s = sympy.symbols('%s')" % (val, val)
+                elif pattern == 'coefs_pattern':
+                    val = val
+
+                    def rand_gen():
+                        return("%.3f" % random.random())
+                    sympy_gen = "%s = %s" % (val, rand_gen())
                 else:
                     # not use other patterns:
                     continue
@@ -223,7 +273,7 @@ class Equation():
                     self.args[val].nodes.append(node)
                 else:
                     self.args[val] = Arg(val, pattern, node,
-                                         rand_gen)
+                                         rand_gen, sympy_gen)
                     
             except AttributeError:
                 pass
@@ -236,90 +286,121 @@ class Equation():
         snet - string either like "U'= F" or "F" where
                F must satisfy grammar's rules and lexem's patterns.
         Return:
-        converted sent.
+        operator tree self.eq_tree.
         '''
-        self.prefix = []
-        self.kernel = []
-
-        sent = self.sent
-        # remove spaces:
-        sent = sent.replace(' ', "")
-        
-        # tokenisation:
-        sent = lex(sent=sent)
-        self.from_lex = sent
-        # return(goal_sent)
 
         # work with prefix:
-        self._prefix_step(sent)
+        self._prefix_step()
 
-        # convert prefix and trivial cases
-        # to term like objects (for replacer):
+        # convert left-midle-right part of eq
+        # to tree (for replacer):
         self.convert_to_node()
+    
+        # extract vars for sampling:
+        self.get_args()
+
+    def _prefix_step(self):
+
+        '''Transform sent_lex to eq_left, eq_mid, eq_right.
+        Where eq_left and eq_right is accepted by cyk parser
+        and can be transformed to tree objects,
+        eq_mid is either '=' or '=-' or None.
+
+        self.sent must exist.
         
-        if self.have_tree:
-            # make operator tree:
-            self._sym_step(self.kernel)
-            logger.debug("operator tree:")
-            logger.debug(self.operator_tree)
-        else:
-            logger.debug("trivial case without tree")
+        If left brackets would be corrected, it would be
+        indicated as:
+        self.left_brs_added = True
 
-    def _prefix_step(self, sent):
+        Example:
+        for sent_lex = ["a", "=", "a"]
+        return eq_left: (a), eq_mid: '=', eq_right: (a)
+        for sent_lex = ["a", "=", "-", "a"]
+        return eq_left: (a), eq_mid: '=-',eq_right: (a)
+        for sent_lex = ["a", "=", "a", "+", "a"]
+        return eq_left: (a), eq_mid: '=', eq_right: a+a
+        '''
+        sent = self.sent
+
+        # remove spaces:
+        sent = sent.replace(' ', "")
+
+        # used to indicate that U->(U) for
+        # single left term:
+        self.left_brs_added = False
+
+        mids = ['=-', '=', None]
+        for mid in mids:
+            if mid is None:
+                # if sent is not equation (like U'=sin(U))
+                # but just sin(U):
+                eq_left = None
+                eq_mid = None
+                eq_right = lex(sent=sent)
+                
+                # for case a:
+                if len(eq_right) == 1:
+                    sent_right = "("+sent+")"
+                    eq_right = lex(sent=sent_right)
+
+                # for case -a or -(a+a):
+                elif '-' == eq_right[0]:
+                    eq_mid = lex(sent='-')
+                    
+                    # for case -a
+                    if len(eq_right[1:]) == 1:
+                        sent_right = "("+sent[1:]+")"
+                        eq_right = lex(sent=sent_right)
+
+            # if sent is equation (U'=sin(U) or U'=-sin(U)
+            # or U'=-(U+V)):
+            elif mid in sent:
+                sent_left, sent_right = sent.split(mid)
+                eq_left = lex(sent=sent_left)
+                eq_mid = lex(sent=mid)
+                eq_right = lex(sent=sent_right)
+
+                # correct left for grammar:
+                if len(eq_left) == 1:
+                    sent_left = '('+sent_left+')'
+                    eq_left = lex(sent=sent_left)
+
+                    # indicate correction for map_out:
+                    self.left_brs_added = True
+
+                # correct right for grammar:
+                if len(eq_right) == 1:
+                    sent_right = '('+sent_right+')'
+                    eq_right = lex(sent=sent_right)
+                break
         
-        self.have_tree = True
+        self.eq = [eq_left, eq_mid, eq_right]
 
-        if '=' in sent:
-            # like eq: U'= sin(x)
-            prefix = sent[:sent.index('=')-1]
-            kernel = sent[sent.index('=')+1:]
-            self.prefix.extend(prefix)
-            self.prefix.append('=')
-            self.kernel = kernel
-        else:
-            # like eq: sin(x)
-            self.prefix = []
-            kernel = sent
-            self.kernel = kernel
+    def map_out(self, replacer):
 
-        # for case sent = a (like s='U'):
-        if len(kernel) == 1:
-            self.kernel = kernel
-            self.have_tree = False
-            
-        # for case like goal_sent = -(a+ ...) or -a
-        if kernel[0] == '-':
-            if len(kernel) == 2:
-                # like -a:
-                self.prefix.append('-')
-                self.kernel = kernel[1:]
-                self.have_tree = False
-            else:
-                # like -(a+a)
-                self.prefix.append(kernel[0])
-                self.kernel = kernel[1:]
+        '''Add out to self.eq_tree (from self.parse)'''
+
+        _map = map_tree(self.eq_tree, replacer)
+        _map_postproc = map_tree_postproc(_map, replacer)
+
+        # if brackets was added to left part of equation
+        # like U'= -> (U')=
+        # then remove them:
+        # from '='->[br-> ['(', args->[a], ')'], right]
+        # to '='-> [a, right]:
+        if self.left_brs_added:
+            br_child = _map_postproc.children[1]
+            child = br_child.children[1].children[0]
+            _map_postproc.replace_child(br_child, child)
+            self.left_brs_added = False
+
+        return(_map_postproc)
 
     def map_cpp(self):
+        return(self.map_out(self.tree_cpp_replacer))
 
-        '''Add cpp out to self.prefix and self.operator_tree
-        or self.kernel (if tree is trivial)'''
-
-        cpp_map_prefix = [map_tree(term, self.tree_cpp_replacer)
-                          for term in self.prefix]
-        cpp_map_prefix_post = [map_tree_postproc(term, self.tree_cpp_replacer)
-                               for term in cpp_map_prefix]
-        if self.have_tree:
-            
-            cpp_map = map_tree(self.operator_tree, self.tree_cpp_replacer)
-            cpp_map_postproc = map_tree_postproc(cpp_map,
-                                                 self.tree_cpp_replacer)
-            return(cpp_map_prefix_post, [cpp_map_postproc])
-        else:
-            cpp_map_kernel = [map_tree(term, self.tree_cpp_replacer)
-                              for term in self.kernel]
-            cpp_map_ker_p = [map_tree_postproc(term, self.tree_cpp_replacer)
-                             for term in cpp_map_kernel]
-            return(cpp_map_prefix_post, cpp_map_ker_p)
+    def map_sympy(self):
+        return(self.map_out(self.sympy_replacer))
 
     def flatten(self, key):
 
@@ -327,60 +408,137 @@ class Equation():
         Key either original or cpp.'''
         
         if key == 'cpp':
-            prefix, kernel = self.map_cpp()
+            kernel = self.map_cpp()
         elif key == 'original':
-            prefix = self.prefix
-            if self.have_tree:
-                kernel = [self.operator_tree]
-            else:
-                kernel = self.kernel
+            kernel = self.eq_tree
         elif key == 'rand':
-            prefix = self.prefix
-            if self.have_tree:
-                kernel = [self.operator_tree]
-            else:
-                kernel = self.kernel
+            kernel = self.eq_tree
+        elif key == 'sympy':
+            kernel = self.map_sympy()
 
-        logger.debug("prefix")
-        logger.debug(prefix)
         logger.debug("kernel")
         logger.debug(kernel)
 
-        # ['(', 'a']
-        out_prefix = [term.flatten(key)[0] for term in prefix]
-        if self.have_tree:
-            # [['(', 'a']]
-            out_kernel = [term.flatten(key) for term in kernel][0]
-        else:
-            # [['a'], [')']]
-            out_kernel = [term.flatten(key)[0] for term in kernel]
+        out_kernel = kernel.flatten(key)
+            
+        return("".join(out_kernel))
 
-        logger.debug("out_prefix")
-        logger.debug(out_prefix)
-        logger.debug("out_kernel")
-        logger.debug(out_kernel)
+    def make_sympy(self):
 
-        out = out_prefix + out_kernel
-        return("".join(out))
+        '''Make sympy equation.
 
+        Example:
+        >>> e = Equation("U'=-a*(D[U,{x,1}])+U")
+        >>> e.parse()
+        >>> e.set_dim(dim=1)
+        >>> e.make_sympy()
+        >>> e.eq_sympy
+        Eq(Derivative(U(t, x), t), U(t, x) - 0.014*Derivative(U(t, x), x))
+        '''
+
+        # generate var (U) and const (a):
+        for karg in self.args.keys():
+            try:
+                if self.args[karg].sympy_gen is not None:
+                    logger.debug("sympy_gen:")
+                    logger.debug(self.args[karg].sympy_gen)
+                    exec(self.args[karg].sympy_gen)
+            except AttributeError:
+                continue
+
+        # time
+        exec("t=sympy.symbols('t')")
+
+        # space
+        exec("x, y, z = sympy.symbols('x y z')")
+
+        eq_sympy = self.flatten('sympy')
+        logger.debug("eq_sympy")
+        logger.debug(eq_sympy)
+        eq_left, eq_right = eq_sympy.split('=')
+        self.eq_sympy = eval("sympy.Eq(%s, %s)" % (eq_left, eq_right))
+        # self.eq_sympy = sympy.sympify("Eq(%s, %s)" % (eq_left, eq_right))
+        sympy.printing.pprint(self.eq_sympy)
+
+    def pdsolve(self):
+
+        '''Try to solve pde'''
+
+        Id = sympy.functions.Id
+        self.eq_sympy_solved = sympy.pde.pdsolve(self.eq_sympy, solvefun=Id)
+        return(self.eq_sympy_solved)
+
+    def plot_pde(self):
+        '''Try to plot solved pde.
+        
+        Example:
+        >>> e = eq.Equation("U'=-a*(D[U,{x,1}])+U+sin(x)")
+        >>> e.parse()
+        >>> e.set_dim(dim=1)
+        >>> e.make_sympy()
+        >>> e.pdesolve()
+        >>> e.plot_pde()
+        '''
+
+        # time
+        exec("t=sympy.symbols('t')")
+        
+        # space
+        exec("x, y, z = sympy.symbols('x y z')")
+        sympy.plotting.plot_implicit(self.eq_sympy_solved.rhs)
+        
     def show_original(self):
         print(self.flatten("original"))
 
     def show_cpp(self):
         print(self.flatten('cpp'))
 
+    def show_rand(self):
+        '''
+        Example
+        >>> e = Equation("f(a*x+b*y)=a*f(x)+b*f(y)")
+        >>> e.parse()
+        >>> e.sampling()
+        >>> e.show_rand()
+        sin(0.243*0.570+0.369*0.078)=0.243*sin(0.570)+0.369*sin(0.078)
+        '''
+        print(self.flatten('rand'))
+    
+    def show_sympy(self):
+        '''
+        Example:
+        >>> e = Equation("U'=-a*(D[U,{x,1}])+U")
+        >>> e.parse()
+        >>> e.set_dim(dim=1)
+        >>> e.make_sympy()
+        >>> e.show_sympy()
+        '''
+        print(sympy.printing.pprint(self.eq_sympy))
+
+    def classify_pde(self):
+        '''
+        Example:
+        >>> e = Equation("U'=-a*(D[U,{x,1}])+U")
+        >>> e.parse()
+        >>> e.set_dim(dim=1)
+        >>> e.make_sympy()
+        >>> e.classify_pde()
+        ('1st_linear_constant_coeff_homogeneous',)
+        '''
+        return(sympy.classify_pde(self.eq_sympy))
+
     def show_tree_original(self):
-        if self.have_tree:
-            print(self.operator_tree.show_original())
+        print(self.eq_tree.show_original())
     
     def show_tree_cpp_out(self):
-        if self.have_tree:
-            print(self.operator_tree.show_cpp_out())
+        print(self.eq_tree.show_cpp_out())
         
     def show_tree_cpp_data(self):
-        if self.have_tree:
-            print(self.operator_tree.show_cpp_data())
+        print(self.eq_tree.show_cpp_data())
 
+    def show_tree_sympy(self):
+        print(self.eq_tree.show_sympy_out())
+    
     # FOR set out cpp parameters:
 
     def set_default(self):
@@ -401,7 +559,8 @@ class Equation():
         '''dim=2'''
 
         self.tree_cpp_replacer.set_dim(**kwargs)
-    
+        self.sympy_replacer.set_dim(**kwargs)
+
     def set_blockNumber(self, **kwargs):
         '''blockNumber=0'''
         self.tree_cpp_replacer.set_blockNumber(**kwargs)
