@@ -153,8 +153,11 @@ class Equation():
         '''Generate value for each arg in self.args.
         Used self.args[val].rand_gen for each value. (default is
         set in Equation.get_args)
+        If insted of rand_gen has attribute arg_fix, it's value will
+        be used instead.
         After that Equation.flatten('rand') can be used to generate
         whole equation.
+        Or Equation.lambdify to sample equation.
 
         Example:
         >>> e = Equation("f(x+y)")
@@ -171,9 +174,15 @@ class Equation():
             try:
                 val = self.args[arg_key].rand_gen()
                 for node in self.args[arg_key].nodes:
-                    node.rand = str(val)
+                    node.rand = val
             except AttributeError:
-                continue
+                # maybe arg has fix value:
+                try:
+                    val = self.args[arg_key].val_fix
+                    for node in self.args[arg_key].nodes:
+                        node.rand = val
+                except AttributeError:
+                    continue
 
     def get_args(self):
 
@@ -185,7 +194,10 @@ class Equation():
         They must be alredy recognized by lex.
         it add simple rand_gen to each self.args, that
         used to generate it's values (in self.sampling method).
-        
+
+        It also add sympy_gen attr for vars and constants.
+        (for correct call eval(eq) method).
+
         Example:
         >>> e = Equation('f(x+y+x)+f(x)+g(z)')
         >>> e.parse()
@@ -204,13 +216,15 @@ class Equation():
             f(x+y)-> f, x, y'''
 
             def __init__(self, name, pattern, node,
-                         rand_gen=None, sympy_gen=None):
+                         rand_gen=None, sympy_gen=None, val_fix=None):
                 self.name = name
                 self.pattern = pattern
                 if rand_gen is not None:
                     self.rand_gen = rand_gen
                 if sympy_gen is not None:
                     self.sympy_gen = sympy_gen
+                if val_fix is not None:
+                    self.val_fix = val_fix
 
                 self.nodes = [node]
 
@@ -225,58 +239,39 @@ class Equation():
                     s = s + " sympy: %s" % (self.sympy_gen)
                 except AttributeError:
                     pass
+                try:
+                    s = s + " val_fix: %s" % (self.val_fix)
+                except AttributeError:
+                    pass
+
                 return(s)
 
         for node in self.eq_tree:
             try:
                 val, _, pattern = node.name.lex
-                if pattern == 'func_pattern':
-                    val = val[:-1]
-
-                    def rand_gen():
-                        return(str(random.choice(['sin(', 'cos('])))
-                        
-                    # sympy_gen = "%s = sympy.%s" % (val, val)
-                    sympy_gen = None
-
-                elif (pattern == 'diff_pattern'
-                      or pattern == 'diff_time_var_pattern'):
-                    reg_pattern = node.name.lex[1]
-            
-                    # diff var (U):
-                    var = reg_pattern.group('val')
-                    rand_gen = None
-                    sympy_gen = "%s = sympy.symbols('%s')" % (var[0], var[0])
-
-                elif pattern == 'var_pattern':
-                    rand_gen = None
-                    sympy_gen = "%s = sympy.symbols('%s')" % (val[0], val[0])
-
-                elif pattern == 'free_var_pattern':
-                    val = val
-
-                    def rand_gen():
-                        return("%.3f" % random.random())
-
-                    sympy_gen = "%s = sympy.symbols('%s')" % (val, val)
-                elif pattern == 'coefs_pattern':
-                    val = val
-
-                    def rand_gen():
-                        return("%.3f" % random.random())
-                    sympy_gen = "%s = %s" % (val, rand_gen())
-                else:
-                    # not use other patterns:
-                    continue
-                
-                if val in self.args.keys():
-                    self.args[val].nodes.append(node)
-                else:
-                    self.args[val] = Arg(val, pattern, node,
-                                         rand_gen, sympy_gen)
-                    
             except AttributeError:
-                pass
+                continue
+            try:
+                rand_gen = node.arg_rand
+            except AttributeError:
+                rand_gen = None
+            try:
+                sympy_gen = node.arg_sympy
+            except AttributeError:
+                sympy_gen = None
+            try:
+                val_fix = node.arg_fix
+            except AttributeError:
+                val_fix = None
+
+            if (rand_gen is None and sympy_gen is None
+                and val_fix is None):
+                continue
+            if val in self.args.keys():
+                self.args[val].nodes.append(node)
+            else:
+                self.args[val] = Arg(val, pattern, node,
+                                     rand_gen, sympy_gen, val_fix)
 
     def parse(self):
 
@@ -296,9 +291,6 @@ class Equation():
         # to tree (for replacer):
         self.convert_to_node()
     
-        # extract vars for sampling:
-        self.get_args()
-
     def _prefix_step(self):
 
         '''Transform sent_lex to eq_left, eq_mid, eq_right.
@@ -423,6 +415,131 @@ class Equation():
             
         return("".join(out_kernel))
 
+    def lambdify_call(self, tree=None):
+
+        '''
+        It used to transfer tree into lambda expresion and
+        call it.
+
+        map_sympy, get_args and sampling must be used first
+
+        Example:
+
+        >>> e = eq.Equation("sin(0-x)=-sin(x)")
+        >>> e.parse()
+        >>> e.set_dim(dim=1)
+        >>> e.make_sympy()
+        >>> e.sampling()
+        >>> e.lambdify()
+        True
+        '''
+
+        if tree is None:
+
+            # make lambda_sympy and arg_rand
+            # for each node
+            # self.map_sympy()
+
+            # sample vars:
+            # self.get_args()
+            # self.sampling()
+
+            tree = self.eq_tree
+
+        if len(tree) == 0:
+            return(tree.rand)
+            
+        elif tree.name == 'br':
+            # only for one args now:
+            func = tree[0]
+            arg = tree[1][0]
+            try:
+                A = self.lambdify_call(arg)
+                # if type(A) == str:
+                #    A = float(A)
+                logger.debug("arg")
+                logger.debug(A)
+                logger.debug(type(A))
+                return(func.lambda_sympy(A))
+            except AttributeError:
+                return(self.lambdify_call(arg))
+
+        elif len(inspect.getargspec(tree.lambda_sympy).args) == 2:
+            L = self.lambdify_call(tree[0])
+            # if type(L) == str:
+            #     L = float(L)
+            R = self.lambdify_call(tree[1])
+            # if type(R) == str:
+            #     R = float(R)
+
+            logger.debug("L, R:")
+            logger.debug(L)
+            logger.debug(type(L))
+            logger.debug(R)
+            logger.debug(type(R))
+            tree.lambda_args = [L, R]
+            return(tree.lambda_sympy(L, R))
+
+    def lambdify(self, tree=None):
+
+        '''
+        It used to transfer tree into lambda expresion.
+
+        Only for float now
+
+        map_sympy, get_args and sampling must be used first
+
+        Example:
+
+        >>> e = eq.Equation("sin(0-x)=-sin(x)")
+        >>> e.parse()
+        >>> e.set_dim(dim=1)
+        >>> e.make_sympy()
+        >>> e.sampling()
+        >>> e.lambdify()
+        '''
+
+        if tree is None:
+
+            # make lambda_sympy and arg_rand
+            # for each node
+            # self.map_sympy()
+
+            # sample vars:
+            # self.get_args()
+            # self.sampling()
+
+            tree = self.eq_tree
+
+        if len(tree) == 0:
+            
+            return(lambda: tree.rand)
+            
+        elif tree.name == 'br':
+            # only for one args now:
+            func = tree[0]
+            arg = tree[1][0]
+            try:
+                A = self.lambdify(arg)
+                logger.debug("arg")
+                logger.debug(A)
+                logger.debug(type(A))
+                return(lambda: func.lambda_sympy(A()))
+            except AttributeError:
+                return(self.lambdify(arg))
+
+        elif len(inspect.getargspec(tree.lambda_sympy).args) == 2:
+            L = self.lambdify(tree[0])
+            R = self.lambdify(tree[1])
+
+            logger.debug("L, R:")
+            logger.debug(L)
+            logger.debug(type(L))
+            logger.debug(R)
+            logger.debug(type(R))
+            tree.lambda_args = [L, R]
+            return(lambda: tree.lambda_sympy(L(), R()))
+            
     def make_sympy(self):
 
         '''Make sympy equation.
@@ -435,14 +552,31 @@ class Equation():
         >>> e.eq_sympy
         Eq(Derivative(U(t, x), t), U(t, x) - 0.014*Derivative(U(t, x), x))
         '''
+        eq_sympy = self.flatten('sympy')
+        logger.debug("eq_sympy")
+        logger.debug(eq_sympy)
+        
+        # extract vars for sampling:
+        self.get_args()
+
+        # fill some attributes:
+        self.sampling()
 
         # generate var (U) and const (a):
         for karg in self.args.keys():
             try:
                 if self.args[karg].sympy_gen is not None:
+
+                    var = str(self.args[karg].sympy_gen)
+                    
                     logger.debug("sympy_gen:")
-                    logger.debug(self.args[karg].sympy_gen)
-                    exec(self.args[karg].sympy_gen)
+                    logger.debug(var)
+
+                    # add vars to current state:
+                    try:
+                        exec("%s = sympy.simplify('%s')" % (var, var))
+                    except:
+                        exec("%s = sympy.simplify('%s')" % (karg, var))
             except AttributeError:
                 continue
 
@@ -452,9 +586,6 @@ class Equation():
         # space
         exec("x, y, z = sympy.symbols('x y z')")
 
-        eq_sympy = self.flatten('sympy')
-        logger.debug("eq_sympy")
-        logger.debug(eq_sympy)
         eq_left, eq_right = eq_sympy.split('=')
         self.eq_sympy = eval("sympy.Eq(%s, %s)" % (eq_left, eq_right))
         # self.eq_sympy = sympy.sympify("Eq(%s, %s)" % (eq_left, eq_right))

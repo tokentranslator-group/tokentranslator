@@ -1,4 +1,6 @@
 from replacer.replacer import Gen
+import sympy
+import random
 
 
 import logging
@@ -22,6 +24,9 @@ class SympyGen(Gen):
         pass
 
     def translate_brackets(self, left_term, right_term):
+        
+        '''Add to brackets like term'''
+        
         pattern = left_term.name.lex[-1]
         if pattern == 'func_pattern':
             
@@ -32,6 +37,9 @@ class SympyGen(Gen):
             # transform to sympy:
             left_term.sympy = "sympy.%s" % (func)
 
+        left_term = self.lambdify(left_term)
+        left_term = self.get_args_rand(left_term)
+
         return((left_term, right_term))
 
     def add_out_to(self, term):
@@ -39,6 +47,106 @@ class SympyGen(Gen):
         '''Add pattern out to term and return it'''
 
         term = self.print_cpp(term)
+        term = self.lambdify(term)
+        term = self.get_args(term)
+        term = self.get_args_rand(term)
+
+        return(term)
+
+    def get_args_rand(self, term):
+
+        '''Add random generator (arg_rand) to some term
+        or arg_fix if term is float'''
+
+        try:
+            val, _, pattern = term.name.lex
+        except AttributeError:
+            return(term)
+            
+        if pattern == 'func_pattern':
+            val = val[:-1]
+
+            def rand_gen():
+                return(str(random.choice(['sin(', 'cos('])))
+            term.arg_rand = rand_gen
+        elif pattern == 'free_var_pattern':
+            def rand_gen():
+                return(float("%.3f" % random.random()))
+            term.arg_rand = rand_gen
+        elif pattern == 'coefs_pattern':
+            def rand_gen():
+                return(float("%.3f" % random.random()))
+            term.arg_rand = rand_gen
+
+        elif pattern == 'float_pattern':
+            
+            term.arg_fix = float(val)
+
+        return(term)
+
+    def get_args(self, term):
+
+        '''Add arg_sympy to arg like terms (const, variables).'''
+
+        try:
+            var = term.name.lex[0]
+            pattern = term.name.lex[-1]
+            if pattern == 'free_var_pattern':
+
+                # transform to sympy:
+                term.arg_sympy = sympy.symbols(names=var)
+            elif (pattern == 'diff_pattern'
+                  or pattern == 'diff_time_var_pattern'):
+
+                reg_pattern = term.name.lex[1]
+
+                # diff var (U):
+                var = reg_pattern.group('val')
+                # sympy_gen = "%s = sympy.symbols('%s')" % (var[0], var[0])
+                term.arg_sympy = sympy.symbols(names=var)
+            elif pattern == 'var_pattern':
+                term.arg_sympy = sympy.symbols(names=var)
+            elif pattern == 'free_var_pattern':
+                term.arg_sympy = sympy.symbols(names=var)
+            elif pattern == 'coefs_pattern':
+                term.arg_sympy = sympy.randprime(1, 7)
+
+        except AttributeError:
+            pass
+        return(term)
+
+    def lambdify(self, term):
+
+        '''Add lambda expresion to some terms'''
+
+        if term.name == '+':
+            term.lambda_sympy = lambda L, R: L.__add__(R)
+        elif term.name == '*':
+            term.lambda_sympy = lambda L, R: L.__mul__(R)
+        elif term.name == '-':
+            term.lambda_sympy = lambda L, R: R.__add__(-L)
+        elif term.name == '/':
+            term.lambda_sympy = lambda L, R: R.__div__(L)
+        
+        elif term.name == '=':
+            term.lambda_sympy = lambda L, R: L.__eq__(R)
+        elif term.name == '=-':
+            term.lambda_sympy = lambda L, R: L.__eq__(-R)
+
+        try:
+            pattern = term.name.lex[-1]
+            if pattern == 'func_pattern':
+                func = term.name.lex[0][:-1]
+                term.lambda_sympy = lambda A: sympy.simplify(func)(A)
+            elif (pattern == 'free_var_pattern'
+                  or pattern == 'coefs_pattern'):
+                var = term.name.lex[0]
+
+                # transform to sympy:
+                term.arg_sympy = sympy.symbols(names=var)
+
+        except AttributeError:
+            pass
         return(term)
 
     def print_cpp(self, term):
