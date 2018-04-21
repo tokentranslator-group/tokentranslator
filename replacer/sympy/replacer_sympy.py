@@ -17,6 +17,13 @@ class Out():
 
 
 class SympyGen(Gen):
+
+    '''Fill term.sympy with print_cpp,
+    term.arg_rand (or term.arg_fix) with get_args_rand,
+    term.arg_sympy with get_args
+    and term.lambda_sympy with lambdify
+    '''
+
     def __init__(self):
         pass
 
@@ -27,15 +34,7 @@ class SympyGen(Gen):
         
         '''Add to brackets like term'''
         
-        pattern = left_term.name.lex[-1]
-        if pattern == 'func_pattern':
-            
-            func = left_term.name.lex[0]
-            logger.debug("func_pattern:")
-            logger.debug(func)
-
-            # transform to sympy:
-            left_term.sympy = "sympy.%s" % (func)
+        left_term = self.print_sympy(left_term)
 
         left_term = self.lambdify(left_term)
         left_term = self.get_args_rand(left_term)
@@ -46,7 +45,7 @@ class SympyGen(Gen):
 
         '''Add pattern out to term and return it'''
 
-        term = self.print_cpp(term)
+        term = self.print_sympy(term)
         term = self.lambdify(term)
         term = self.get_args(term)
         term = self.get_args_rand(term)
@@ -149,7 +148,7 @@ class SympyGen(Gen):
             pass
         return(term)
 
-    def print_cpp(self, term):
+    def print_sympy(self, term):
         '''
         term.lex = ['D[U,{x,2}]', <_sre.SRE_Match object>, 'diff_pattern']
         add out to term
@@ -205,6 +204,14 @@ class SympyGen(Gen):
             
             # transform to sympy:
             term.sympy = var
+        elif pattern == 'func_pattern':
+            
+            func = term.name.lex[0]
+            logger.debug("func_pattern:")
+            logger.debug(func)
+
+            # transform to sympy:
+            term.sympy = "sympy.%s" % (func)
 
         return(term)
 
