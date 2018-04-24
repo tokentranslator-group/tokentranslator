@@ -6,7 +6,7 @@ import random
 import logging
 
 # create logger
-log_level = logging.DEBUG  # logging.INFO
+log_level = logging.INFO  # logging.INFO
 logging.basicConfig(level=log_level)
 logger = logging.getLogger('replacer_cpp.py')
 logger.setLevel(level=log_level)

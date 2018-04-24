@@ -74,7 +74,7 @@ import sympy
 import logging
 
 # create logger
-log_level = logging.DEBUG  # logging.DEBUG
+log_level = logging.INFO  # logging.DEBUG
 logging.basicConfig(level=log_level)
 logger = logging.getLogger('equation.py')
 logger.setLevel(level=log_level)
