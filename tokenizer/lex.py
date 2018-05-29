@@ -49,6 +49,7 @@ class Lex():
         self.init_pow_pattern()
         self.init_func_pattern()
         self.init_free_var_pattern()
+        self.init_time_pattern()
         self.init_diff_time_var_pattern()
 
         self.patterns = []
@@ -61,6 +62,7 @@ class Lex():
                               self.var_diff_t_pattern))
         self.patterns.append(('var_pattern', self.var_pattern))
         self.patterns.append(('free_var_pattern', self.free_var_pattern))
+        self.patterns.append(('time_pattern', self.time_pattern))
         self.patterns.append(('coefs_pattern', self.coefs_pattern))
         self.patterns.append(('pow_pattern', self.pow_pattern))
         self.patterns.append(('float_pattern', self.term_float))
@@ -72,6 +74,7 @@ class Lex():
                              ('diff_time_var_pattern', 'a'),
                              ('var_pattern', 'a'),
                              ('free_var_pattern', 'a'),
+                             ('time_pattern', 'a'),
                              ('coefs_pattern', 'a'),
                              ('pow_pattern', 'w'),
                              ('func_pattern', 'f'),
@@ -177,6 +180,13 @@ class Lex():
 
         var_pattern = "[%s]" % (self.indep_vars)
         self.free_var_pattern = var_pattern
+
+    def init_time_pattern(self):
+
+        '''For t'''
+
+        time_pattern = "[t]"
+        self.time_pattern = time_pattern
 
     def init_coefs_pattern(self):
         coefs_pattern = ('[%s]'

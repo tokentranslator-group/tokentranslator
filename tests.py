@@ -94,7 +94,8 @@ tests = ["(U)^3",
          "U",
          "-(U(t-1.1)+V)",
          "U'=-(U(t-1.1)+V)",
-         "f(x, y,)+g(y,z,)+h(x,z,)"]
+         "f(x, y,)+g(y,z,)+h(x,z,)",
+         "exp(t)"]
 
 
 def test_one(test, _id=0, verbose=False):
