@@ -97,7 +97,7 @@ class PureDerivGenerator(DerivGenerator):
         # TODO use 'x' instead:
         self.indepVarList = params.indepVarList
         x = params.indepVarList[0]
-        self.derivOrder = params.indepVarOrders[x]
+        self.derivOrder = int(params.indepVarOrders[x])
 
         # like ['x', 'y', 'z']
         self.userIndepVariables = ['x', 'y', 'z']
