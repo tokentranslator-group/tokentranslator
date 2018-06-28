@@ -55,15 +55,15 @@
     END OF Algorithm.
 
 '''
-from parse.grammars import gm_to_cnf
-from parse.grammars import gm_pow_f_args
-from tokenizer.lex import lex
-from parse.cyk import cyk
-from tree.tree_converter import convert
-from tree.maps import map_tree, map_tree_postproc
-from replacer.cpp.replacer_cpp import CppGen
-from replacer.sympy.replacer_sympy import SympyGen
-from tree.nodes import NodeCommon
+from equation.parse.grammars import gm_to_cnf
+from equation.parse.grammars import gm_pow_f_args
+from equation.tokenizer.lex import lex
+from equation.parse.cyk import cyk
+from equation.tree.tree_converter import convert
+from equation.tree.maps import map_tree, map_tree_postproc
+from equation.replacer.cpp.replacer_cpp import CppGen
+from equation.replacer.sympy.replacer_sympy import SympyGen
+from equation.tree.nodes import NodeCommon
 
 import sys
 import inspect
@@ -220,6 +220,10 @@ class Equation():
         Example:
         >>> e = Equation('f(x+y+x)+f(x)+g(z)')
         >>> e.parse()
+        # create rand_gen:
+        >>> e.flatten('sympy')
+        # use create args with use of rand_gen:
+        >>> e.get_args()
         >>> e.args
         {'f': func_pattern, rand: cos(, nodes count: 2,
          'g': func_pattern, rand: sin(, nodes count: 1,
@@ -417,8 +421,9 @@ class Equation():
     def flatten(self, key):
 
         '''Return list of term as key.
-        Key either original or cpp.'''
-        
+        Key either original or cpp.
+        Flatten is only work after map_*'''
+        '''
         if key == 'cpp':
             kernel = self.map_cpp()
         elif key == 'original':
@@ -427,13 +432,20 @@ class Equation():
             kernel = self.eq_tree
         elif key == 'sympy':
             kernel = self.map_sympy()
+        '''
+        kernel = self.eq_tree
 
         logger.debug("kernel")
         logger.debug(kernel)
-
+        
         out_kernel = kernel.flatten(key)
             
         return("".join(out_kernel))
+
+    def make_cpp(self):
+        self.map_cpp()
+        self.eq_cpp = self.flatten('cpp')
+        return(self.eq_cpp)
 
     def lambdify_call(self, tree=None):
 

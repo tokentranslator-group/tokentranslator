@@ -16,8 +16,8 @@ sys.path.insert(0, grantparentdir_1)
 print("sys.path")
 print(sys.path)
 
-import tokenizer.lex as lex
-from replacer_cpp import CppGen
+import equation.tokenizer.lex as lex
+from equation.replacer_cpp import CppGen
 
 
 def test():

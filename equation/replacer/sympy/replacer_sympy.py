@@ -1,4 +1,4 @@
-from replacer.replacer import Gen
+from equation.replacer.replacer import Gen
 import sympy
 import random
 
@@ -18,7 +18,7 @@ class Out():
 
 class SympyGen(Gen):
 
-    '''Fill term.sympy with print_cpp,
+    '''Fill term.sympy with print_sympy,
     term.arg_rand (or term.arg_fix) with get_args_rand,
     term.arg_sympy with get_args
     and term.lambda_sympy with lambdify

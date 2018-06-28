@@ -3,7 +3,7 @@ NodeR contain some addition functions
 for parse to operator tree convetion (convert func in tree.py)'''
 from functools import reduce
 import inspect
-from tokenizer.words import Word
+from equation.tokenizer.words import Word
 
 
 class Node():

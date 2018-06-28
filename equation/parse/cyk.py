@@ -18,7 +18,7 @@ else
   I is not member of language
 '''
 # from nodes import Node, copy_node
-from tree.nodes import NodeR as Node, copy_node
+from equation.tree.nodes import NodeR as Node, copy_node
 '''
 FOR
    E -> E+T|T

@@ -1,8 +1,8 @@
-from replacer.cpp.cpp_out import Params
-from replacer.cpp.cpp_out import Diff, Var, FreeVar
-from replacer.cpp.cpp_out import Coeffs, Bdp, Pow, Func
-from replacer.cpp.cpp_out import delay_postproc
-from replacer.replacer import Gen
+from equation.replacer.cpp.cpp_out import Params
+from equation.replacer.cpp.cpp_out import Diff, Var, FreeVar
+from equation.replacer.cpp.cpp_out import Coeffs, Bdp, Pow, Func
+from equation.replacer.cpp.cpp_out import delay_postproc
+from equation.replacer.replacer import Gen
 
 
 import logging
@@ -34,7 +34,8 @@ class CppGen(Gen):
         self.func_gen = Func(self)
 
     def postproc(self, node):
-        delay_postproc(node)
+        ###delay_postproc(node)
+        pass
 
     def translate_brackets(self, left_term, right_term):
         # TODO

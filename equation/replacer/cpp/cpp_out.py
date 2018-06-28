@@ -1,10 +1,10 @@
-from replacer.cpp.additions.deriv import PureDerivGenerator
-from replacer.cpp.additions.deriv import MixDerivGenerator
+from equation.replacer.cpp.additions.deriv import PureDerivGenerator
+from equation.replacer.cpp.additions.deriv import MixDerivGenerator
 
 import logging
 
 # create logger
-log_level = logging.INFO  # logging.DEBUG
+log_level = logging.DEBUG  # logging.DEBUG
 logging.basicConfig(level=log_level)
 logger = logging.getLogger('cpp_out.py')
 logger.setLevel(level=log_level)
@@ -529,6 +529,10 @@ def delay_postproc(node):
     converted_delay : source[converted_delay][0]
     delay_data[0] - number of delay's term U(t-1.3)
                     in all delays terms.
+
+    Update:
+    It now use term instead of term_id for term identification
+    in res[var][delay] = [term] and in map_td.
     '''
     out = node
 
@@ -563,11 +567,11 @@ def delay_postproc(node):
             var = var[0]
             if var in res.keys():
                 if delay in res[var].keys():
-                    res[var][delay].append(term_id)
+                    res[var][delay].append(term)  # term_id
                 else:
-                    res[var][delay] = [term_id]
+                    res[var][delay] = [term]  # term_id
             else:
-                res[var] = {delay: [term_id]}
+                res[var] = {delay: [term]}  # term_id
         except KeyError:
             pass
         except AttributeError:
@@ -603,7 +607,7 @@ def delay_postproc(node):
             # transform source[delay]->source[1]:
             delay_data = term.cpp.global_data['delay_data']
             term_id, var, delay = delay_data
-            sdelay = map_td[term_id]
+            sdelay = map_td[term]  # term_id
             term.cpp.out = term.cpp.out.replace('delay', str(sdelay))
             term.cpp.global_data['converted_delay'] = sdelay
             out_new.append(term)
