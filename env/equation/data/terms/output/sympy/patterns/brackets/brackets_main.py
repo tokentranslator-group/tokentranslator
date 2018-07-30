@@ -1,7 +1,7 @@
 from translator.replacer.replacer_brackets import GenBrackets
 
 from env.equation.data.terms.output.sympy.patterns.brackets.func import Func
-
+from env.equation.data.terms.output.sympy.patterns.brackets.idx import Idx
 
 import logging
 
@@ -20,7 +20,7 @@ logger = logging.getLogger('cpp_net')
 logger.setLevel(level=log_level)
 '''
 
-terms_br_gens = [Func]
+terms_br_gens = [Func, Idx]
 
 
 class Out():

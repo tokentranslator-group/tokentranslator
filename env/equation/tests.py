@@ -33,7 +33,8 @@ import traceback
 import sympy
 
 
-tests = ["(U)^3",
+tests = ["a.t() = a",
+         "(U)^3",
          "(V(t-1.1, {x, 0.7}{y, 0.7}))^3",
          "(D[V(t-1.1), {x, 2}])^3",
          '(U(t-1))^3',
@@ -105,6 +106,7 @@ def test_one(_id=0, sympy=False, verbose=False):
     try:
         try:
             eq.parser.parse()
+            
         except BaseException as e:
             # print(eq.from_lex)
             # print(eq.from_cyk)
@@ -172,21 +174,27 @@ def test_all():
 
 
 def test_lambda():
-    # e = Equation("a*c + d*U+f(y)+sin(x)=-cos(x)")
+    # e = Equation("a*c + d*U+f(y,z,)+sin(x)=-cos(x)")
+    # e = Equation("f(y,z,)=-(cos(x)+sin(x))")
     # e = Equation("a*(D[U,{x,2}]) + d*D[U,{y,2}]=cos(x)")
-    e = Equation("U'=a*(D[U,{x,2}]) + d*D[U,{y,2}]+cos(x)")
+    # e = Equation("U'=a*(D[U,{x,2}]) + d*D[U,{y,2}]+cos(x)")
+    # e = Equation("a.t = a")
+    e = Equation("a[i,j,] = a[j, i,]")
     e.parser.parse()
 
     print('\noriginal:')
     e.show_original()
-
+    print(e.eq_tree)
     e.args_editor.get_vars()
-    
-    x, y, U, f, d, c, a = sympy.symbols('x y U f d c a')
+
+    # x, y, z, U, f, d, c, a = sympy.symbols('x y z U f d c a')
 
     # work also for print:
-    # c = sympy.Matrix([[0, -1], [1, 0]])
-    e.args_editor.subs(x=x, y=y, U=U, f=f, d=d, c=c, a=a)
+    a = sympy.Matrix([[0, 1], [1, 0]])
+    # e.args_editor.subs(x=x, y=y, z=z, U=U, f=f, d=d, c=c, a=a)
+    e.args_editor.subs(a=a, i=0, j=1)
+    print("vars:")
+    print(e.vars)
 
     e.slambda.sympy.lambdify_sem()
     out = e.slambda.sympy.lambdify()
@@ -199,6 +207,7 @@ def test_lambda():
     e.replacer.sympy.make_sympy()
     print("\nrand_sympy")
     print(e.tree.flatten('rand_sympy'))
+    # print(e.tree.flatten('sympy'))
 
 
 def test_rand():
@@ -234,7 +243,7 @@ def test_rand():
 
 
 if __name__ == '__main__':
-    # test_all()
-    test_lambda()
+    test_all()
+    # test_lambda()
     # test_rand()
-    # test_one(33, sympy=True, verbose=True)
+    # test_one(57, sympy=True, verbose=True)

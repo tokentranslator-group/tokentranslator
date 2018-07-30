@@ -133,7 +133,8 @@ class EqParser():
                 if len(eq_left) == 1:
                     sent_left = '('+sent_left+')'
                     eq_left = self.lex(sent=sent_left)
-
+                    # print("sent_left")
+                    # print(eq_left)
                     # indicate correction for map_out:
                     self.net._left_brs_added = True
 
@@ -142,8 +143,11 @@ class EqParser():
                     sent_right = '('+sent_right+')'
                     eq_right = self.lex(sent=sent_right)
                 break
-        
+
         self.eq = [eq_left, eq_mid, eq_right]
+
+        logger.debug("self.eq:")
+        logger.debug(self.eq)
 
     def _convert_to_node(self):
 

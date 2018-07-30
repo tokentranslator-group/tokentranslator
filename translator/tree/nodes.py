@@ -64,7 +64,7 @@ class NodeR(Node):
 
         self.trs = ['a']
         self.ops = ['+', '-', '*']
-        self.brs = ['(', ')', 'w', 'f']
+        self.brs = ['(', ')', 'w', 'f', 'i', ']']
         self.sps = [',']
         self.ars = ['arg', 'args']
 
@@ -216,21 +216,31 @@ class NodeR(Node):
 
         elif self.name != 'br':
             # main:
-
-            if non_br_forward:
-                left = self.children[0]._flatten(attr_extractor,
-                                                 non_br_forward)
+            if len(self.children) == 1:
+                arg = self.children[0]._flatten(attr_extractor,
+                                                non_br_forward)
                 X = attr_extractor(self)
-                right = self.children[1]._flatten(attr_extractor,
-                                                  non_br_forward)
-            else:
-                left = self.children[1]._flatten(attr_extractor,
-                                                 non_br_forward)
-                X = attr_extractor(self)
-                right = self.children[0]._flatten(attr_extractor,
-                                                  non_br_forward)
 
-            return(left+[X]+right)
+                if non_br_forward:
+                    return([X] + arg)
+                else:
+                    return(arg + [X])
+
+            elif len(self.children) == 2:
+                if non_br_forward:
+                    left = self.children[0]._flatten(attr_extractor,
+                                                     non_br_forward)
+                    X = attr_extractor(self)
+                    right = self.children[1]._flatten(attr_extractor,
+                                                      non_br_forward)
+                else:
+                    left = self.children[1]._flatten(attr_extractor,
+                                                     non_br_forward)
+                    X = attr_extractor(self)
+                    right = self.children[0]._flatten(attr_extractor,
+                                                      non_br_forward)
+
+                return(left+[X]+right)
 
         elif(self.name == 'br'):
             # if brackets:
@@ -457,8 +467,8 @@ class NodeCommon(NodeR):
 
     ''' Node for Word' representation'''
 
-    def __init__(self, name):
-        name = Word(name, [name, None, None])
+    def __init__(self, name, pattern=None):
+        name = Word(name, [name, None, pattern])
         NodeR.__init__(self, [None, name])
 
 

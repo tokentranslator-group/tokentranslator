@@ -18,6 +18,8 @@ from env.equation.data.terms.input.wolfram.patterns.pow import Pow
 from env.equation.data.terms.input.wolfram.patterns.func import Func
 from env.equation.data.terms.input.wolfram.patterns.time import Time
 from env.equation.data.terms.input.wolfram.patterns.diff_time_var import DiffTimeVar
+from env.equation.data.terms.input.wolfram.patterns.dot import Dot
+from env.equation.data.terms.input.wolfram.patterns.idx import Idx
 
 
 class LexNetW(LexNet):
@@ -26,7 +28,7 @@ class LexNetW(LexNet):
         
         terms_gens = [Base, ArgInt, ArgFloat, ArgDelay, ArgTime,
                       Var, VarBdp, Coeffs, Bdp, Diff, Pow, Func,
-                      FreeVar, Time, DiffTimeVar]
+                      FreeVar, Time, DiffTimeVar, Dot, Idx]
         return(terms_gens)
 
     def get_patterns_order(self):
@@ -34,7 +36,9 @@ class LexNetW(LexNet):
         # order is important for lex:
         patterns_order = ['diff',
                           'bdp',
+                          'dot',
                           'func',
+                          'idx',
                           'diff_time',
                           'var',
                           'free_var',
@@ -56,5 +60,7 @@ class LexNetW(LexNet):
                         ('coeffs', 'a'),
                         ('pow', 'w'),
                         ('func', 'f'),
-                        ('float', 'a')])
+                        ('float', 'a'),
+                        ('dot', 'a'),
+                        ('idx', 'i')])
         return(map_ptg)

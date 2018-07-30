@@ -4,7 +4,12 @@ import sympy
 
 
 def slambda_attr_extractor(node):
+    # print("######")
+    # print(node)
+    # print(node.name)
+    # print("######")
     # print(node.name.lex[0])
+    
     try:
         node.slambda.sympy
     except AttributeError:

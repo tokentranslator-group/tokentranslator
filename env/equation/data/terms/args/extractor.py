@@ -1,4 +1,6 @@
 from translator.replacer.replacer import Gen
+from translator.tree.nodes import NodeCommon
+from env.equation.data.terms.args._list_nodes_editor import terms_for_args
 
 import logging
 
@@ -24,6 +26,8 @@ class ArgsGen(Gen):
 
     def translate(self, node):
 
+        self.separate_arg(node)
+
         try:
             node.args
         except AttributeError:
@@ -38,7 +42,23 @@ class ArgsGen(Gen):
             arg_exist['nodes'].append(node)
         else:
             self.args.append({'id': node.args['id'], 'nodes': [node]})
-        
+    
+    def separate_arg(self, node):
+
+        '''Separate node from its arg:
+        Ex: node: a.t() -> node: .t(), child a'''
+
+        term_id = self.get_term_id(node)
+
+        if term_id in terms_for_args and len(node) == 0:
+            arg = terms_for_args[term_id]
+            arg_node = NodeCommon(arg['child_name'](node),
+                                  arg['child_term_id'])
+            node.add_child(arg_node)
+            
+            # fix value:
+            terms_for_args[term_id]['editor'](self, node)
+
     def postproc(self, node):
         pass
     

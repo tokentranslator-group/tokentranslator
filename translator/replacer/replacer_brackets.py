@@ -44,7 +44,7 @@ class GenBrackets(dict):
             # logger.debug(right_node)
             # logger.debug(left_node)
 
-            self[term_id](left_node, right_node)
+            self[term_id](node_br)
     
     def get_term_br_id(self, left_node, right_node):
 

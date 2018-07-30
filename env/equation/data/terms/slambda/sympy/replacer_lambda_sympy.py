@@ -3,6 +3,7 @@ from translator.replacer.replacer import Gen
 from env.equation.data.terms.slambda.sympy.patterns._list_values import terms_gens_value
 from env.equation.data.terms.slambda.sympy.patterns.ids._list_ids import terms_gens_id
 from env.equation.data.terms.slambda.sympy.patterns._list_br import terms_br_gens
+from env.equation.data.terms.slambda.sympy.patterns.brackets.brackets_main import BracketsNet as BrTermsGens
 
 import sympy
 import random
@@ -33,8 +34,7 @@ class LambdaSympyGen(Gen):
     and term.lambda_sympy with lambdify
     '''
     def __init__(self):
-
-        pass
+        self.terms_br_gens = BrTermsGens(self)
 
     def postproc(self, node):
         pass
@@ -76,33 +76,7 @@ class LambdaSympyGen(Gen):
         
         '''Lambdefy func term'''
 
-        left_node = node_br[0]
-        # right_node = node_br[-1]
-        args_node = node_br[1]
-
-        term_id = self.get_term_id(left_node)
-
-        if term_id == 'func':
-
-            # FOR left_node (sin():
-            if 'variable' in left_node.args:
-                # for func like f, g, h value must exist
-                # substituted with subs:
-                func = left_node.args['variable']['value']
-            else:
-                # for func like sin, cos, exp:
-                # func = left_node.name.lex[0][:-1]
-                func = self.get_term_value(left_node)[:-1]
-            # END FOR
-
-            args_count = len(args_node)
-            if args_count > 1:
-                raise(BaseException("term func for lambda_sympy not"
-                                    + " supported more then one argument"))
-
-            self.set_slambda(left_node, terms_br_gens['func'](func, sympy))
-            # self.set_slambda(left_node, lambda A: sympy.simplify(func)(A))
-            # left_node.lambda_sympy = lambda A: sympy.simplify(func)(A)
+        self.terms_br_gens(node_br)
         
     def lambdify(self, node):
 

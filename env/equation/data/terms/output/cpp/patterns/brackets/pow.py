@@ -24,9 +24,15 @@ class Pow():
         # left_term.name == '('
         self.id = 'l:(|r:w'
 
-    def __call__(self, left_node, right_node):
+    def __call__(self, node_br):
 
         '''Add cpp out to brackets'''
+
+
+        left_node = node_br[0]
+        right_node = node_br[-1]
+
+        args_node = node_br[1]
         
         # get term data:
         self.get_node_data(left_node, right_node)

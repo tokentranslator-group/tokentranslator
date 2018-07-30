@@ -14,7 +14,7 @@ class EqArgs():
                     var['variable']['value'] = val
                     for node in var['nodes']:
                         node.args['variable'] = var['variable']
-                    break
+                    # break
     
     def get_vars(self):
 
@@ -23,8 +23,8 @@ class EqArgs():
         (ex: f, g, h, ...).
         It also add var key to args.'''
 
-        term_vars = ['free_var', 'var', 'func', 'coeffs']
-        
+        terms_vars = ['free_var', 'var', 'func', 'coeffs', 'idx']
+        terms_br = ['func', 'idx']
         try:
             self.net.args
         except AttributeError:
@@ -32,11 +32,11 @@ class EqArgs():
 
         self.net.vars = []
         for arg in self.net.args:
-            if arg['id']['term_id'] in term_vars:
+            if arg['id']['term_id'] in terms_vars:
                 # special for term func
-                if arg['id']['term_id'] == 'func':
+                if arg['id']['term_id'] in terms_br:
                     if len(arg['id']['name'][:-1]) == 1:
-                        # for func variables only f, g, h...
+                        # for func and idx variables only f, g, h...
                         arg['variable'] = {'name': arg['id']['name'][:-1]}
                         for node in arg['nodes']:
                             node.args['variable'] = arg['variable']

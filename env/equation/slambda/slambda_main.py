@@ -60,41 +60,59 @@ class EqSlambda():
         elif tree.name == 'br':
             # only for one args now:
             func = tree[0]
-            arg = tree[1][0]
-            A = self.lambdify_call(slambda_attr_extractor, arg)
+            args = [self.lambdify_call(slambda_attr_extractor, arg)
+                    for arg in tree[1].children]
+            # arg = tree[1][0]
+            # A = self.lambdify_call(slambda_attr_extractor, arg)
             logger.debug("arg")
-            logger.debug(A)
-            logger.debug(type(A))
+            logger.debug(args)
+
             f = slambda_attr_extractor(func)
             if f is None:
                 # if bracket without lambda (like ())
                 # return argument:
-                return(A)
+                # print("args[0]")
+                # print(args[0])
+                # print(type(args[0]))
+                return(args[0])
+                # return(A)
             else:
-                return(f(A))
+                # print("f source:")
+                # print(inspect.getsource(f))
+                return(f(*[A for A in args]))
             # if type(A) == str:
             #    A = float(A)
             # return(func.slambda.sympy(A))
             # except AttributeError:
             #    return(self.lambdify_call(slambda_attr_extractor, arg))
 
-        elif len(inspect.getargspec(slambda_attr_extractor(tree)).args) == 2:
-            # elif len(inspect.getargspec(tree.slambda.sympy).args) == 2:
-            L = self.lambdify_call(slambda_attr_extractor, tree[0])
-            # if type(L) == str:
-            #     L = float(L)
-            R = self.lambdify_call(slambda_attr_extractor, tree[1])
-            # if type(R) == str:
-            #     R = float(R)
+        else:
+            slambda = slambda_attr_extractor(tree)
+            if slambda is None:
+                raise(BaseException("fail to extract slambda"
+                                    + " for node %s" % (tree)))
 
-            logger.debug("L, R:")
-            logger.debug(L)
-            logger.debug(type(L))
-            logger.debug(R)
-            logger.debug(type(R))
-            tree.lambda_args = [L, R]
-            return(slambda_attr_extractor(tree)(L, R))
-            # return(tree.slambda.sympy(L, R))
+            elif len(inspect.getargspec(slambda).args) == 1:
+                arg = self.lambdify_call(slambda_attr_extractor, tree[0])
+                return(slambda(arg))
+
+            elif len(inspect.getargspec(slambda_attr_extractor(tree)).args) == 2:
+                # elif len(inspect.getargspec(tree.slambda.sympy).args) == 2:
+                L = self.lambdify_call(slambda_attr_extractor, tree[0])
+                # if type(L) == str:
+                #     L = float(L)
+                R = self.lambdify_call(slambda_attr_extractor, tree[1])
+                # if type(R) == str:
+                #     R = float(R)
+
+                logger.debug("L, R:")
+                logger.debug(L)
+                logger.debug(type(L))
+                logger.debug(R)
+                logger.debug(type(R))
+                tree.lambda_args = [L, R]
+                return(slambda_attr_extractor(tree)(L, R))
+                # return(tree.slambda.sympy(L, R))
 
     def lambdify(self, slambda_attr_extractor, tree=None):
 
@@ -137,34 +155,44 @@ class EqSlambda():
         elif tree.name == 'br':
             # only for one args now:
             func = tree[0]
-            arg = tree[1][0]
-            A = self.lambdify(slambda_attr_extractor, arg)
+            args = [self.lambdify(slambda_attr_extractor, arg)
+                    for arg in tree[1].children]
+            # arg = tree[1][0]
+            # A = self.lambdify(slambda_attr_extractor, arg)
             # try:
-            logger.debug("arg")
-            logger.debug(A)
-            logger.debug(type(A))
+            logger.debug("args")
+            logger.debug(args)
             f = slambda_attr_extractor(func)
             if f is None:
                 # if bracket without lambda (like ())
                 # return argument:
-                return(A)
+                return(args[0])
+                # return(A)
             else:
-                return(lambda: f(A()))
+                return(lambda: f(*[A() for A in args]))
+                # return(lambda: f(A()))
             # return(lambda: func.slambda.sympy(A()))
             # except AttributeError:
             #     return(A)
+        else:
+            slambda = slambda_attr_extractor(tree)
+            if slambda is None:
+                raise(BaseException("fail to extract slambda"
+                                    + " for node %s" % (tree)))
+            elif len(inspect.getargspec(slambda).args) == 1:
+                arg = self.lambdify(slambda_attr_extractor, tree[0])
+                return(lambda: slambda(arg()))
+            elif len(inspect.getargspec(slambda).args) == 2:
+                # elif len(inspect.getargspec(tree.slambda.sympy).args) == 2:
+                L = self.lambdify(slambda_attr_extractor, tree[0])
+                R = self.lambdify(slambda_attr_extractor, tree[1])
 
-        elif len(inspect.getargspec(slambda_attr_extractor(tree)).args) == 2:
-            # elif len(inspect.getargspec(tree.slambda.sympy).args) == 2:
-            L = self.lambdify(slambda_attr_extractor, tree[0])
-            R = self.lambdify(slambda_attr_extractor, tree[1])
-
-            logger.debug("L, R:")
-            logger.debug(L)
-            logger.debug(type(L))
-            logger.debug(R)
-            logger.debug(type(R))
-            tree.lambda_args = [L, R]
-            return(lambda: slambda_attr_extractor(tree)(L(), R()))
-            # return(lambda: tree.slambda.sympy(L(), R()))
+                logger.debug("L, R:")
+                logger.debug(L)
+                logger.debug(type(L))
+                logger.debug(R)
+                logger.debug(type(R))
+                tree.lambda_args = [L, R]
+                return(lambda: slambda_attr_extractor(tree)(L(), R()))
+                # return(lambda: tree.slambda.sympy(L(), R()))
             

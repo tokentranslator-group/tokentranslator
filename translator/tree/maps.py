@@ -50,10 +50,17 @@ def map_tree(tree, node_editor):
         # finish:
         node_editor(tree)
 
+        # in case node_editor added new
+        # children:
+        if len(tree.children) > 0:
+            for child_node in tree.children:
+                map_tree(child_node, node_editor)
+
     elif tree.name != 'br':
         # main:
 
-        map_tree(tree.children[1], node_editor)
+        if len(tree.children) == 2:
+            map_tree(tree.children[1], node_editor)
         node_editor(tree)
         map_tree(tree.children[0], node_editor)
 
