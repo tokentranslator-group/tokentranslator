@@ -4,7 +4,7 @@ class sysCpp():
 
     def parse(self):
         for eq in self.net.eqs:
-            eq.parse()
+            eq.parser.parse()
 
     def gen_cpp(self):
         self.cpp_out = []

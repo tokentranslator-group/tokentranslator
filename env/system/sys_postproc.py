@@ -67,6 +67,28 @@ class sysPostProc():
 
         # sinch all:
         delay_postproc(common_nodes)
+
+        delays_data = self._get_delays_data(common_nodes)
+        return(delays_data)
+    
+    def _get_delays_data(self, nodes):
+
+        '''Extract delay data from all nodes'''
+
+        delays_data = []
+        for node in nodes:
+            try:
+                data = node.output.cpp.global_data
+                try:
+                    delay_data = [data['converted_delay'],
+                                  data['delay_data']]
+                    delays_data.append(delay_data)
+                except KeyError:
+                    pass
+            except AttributeError:
+                pass
+        
+        return(delays_data)
     
     def show_nodes_global_data(self):
 

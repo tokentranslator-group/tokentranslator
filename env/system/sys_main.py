@@ -65,3 +65,8 @@ class sysNet():
 
     def __len__(self):
         return(len(self.eqs))
+
+    def copy(self):
+        return(sysNet(name=self.base.name,
+                      system=[eq.sent for eq in self.eqs],
+                      vars=self.base.vars, cpp=self.base.cpp))

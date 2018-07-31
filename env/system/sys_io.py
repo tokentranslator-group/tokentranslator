@@ -14,7 +14,7 @@ class sysIO():
         
         for i, eq in enumerate(self.net.eqs):
             try:
-                self.net.eqs[i].parse()
+                self.net.eqs[i].parser.parse()
             except:
                 raise(SyntaxError("eq %s not supported" % eq.sent))
     
