@@ -70,3 +70,7 @@ class sysNet():
         return(sysNet(name=self.base.name,
                       system=[eq.sent for eq in self.eqs],
                       vars=self.base.vars, cpp=self.base.cpp))
+
+    def __repr__(self):
+        
+        return(str([eq.__repr__() for eq in self.eqs]))
