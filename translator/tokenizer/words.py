@@ -17,3 +17,5 @@ class Word(str):
 
 
 simple_words = [Word(char) for char in '(a+a)*a']
+
+

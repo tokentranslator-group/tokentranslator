@@ -29,7 +29,7 @@ def test_sys():
     eq_3 = "U' = U(t-1.2) + U(t-0.7) + U(t-1.3)"
 
     # create system and parse equations:
-    system = System(system=[eq_1, eq_2, eq_3])
+    system = System(system=[eq_1, eq_2, eq_3, eq_4])
 
     # generate cpp:
     system.cpp.set_default()
@@ -49,10 +49,11 @@ def test_sinch_sys():
     eq_1 = "U' = U(t-1.1) + U(t-0.9) + U(t-1.2) + V + V(t-1.1)"
     eq_2 = "U' = U(t-1.1) + U(t-0.7) + U(t-1.2) + V(t-0.3)"
     eq_3 = "U' = U(t-1.2) + U(t-0.5) + U(t-1.3)"
+    eq_4 = "U'=a*(D[U,{x,2}]+ D[U,{y,2}])"
 
     # create system and parse equations:
     sys_1 = System(system=[eq_1, eq_2])
-    sys_2 = System(system=[eq_2, eq_3])
+    sys_2 = System(system=[eq_2, eq_3, eq_4])
 
     # generate cpp:
     sys_1.cpp.set_default()

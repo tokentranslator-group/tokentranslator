@@ -64,7 +64,6 @@ class DerivGenerator():
                 logger.debug(self.dbgInx*' '+str(arg))
             
 
-
 class PureDerivGenerator(DerivGenerator):
     '''
     DESCRIPTION:
@@ -218,11 +217,13 @@ class PureDerivGenerator(DerivGenerator):
     def createIndicesList(self):
         '''
         DESCRIPTION:
-        Т.к. для CentralFunction умеем генерировать аппроксимации
+
+        Т.к. для ``CentralFunction`` умеем генерировать аппроксимации
         производных любого порядка, то эти аппроксимации содержат
         много слагаемых, каждое из которых имеет свой индекс.
 
         EXAMPLES:
+
         For derivOrder = 1
         [' + 0', '-1']
         
@@ -233,7 +234,8 @@ class PureDerivGenerator(DerivGenerator):
         [' + 1', ' + 0', '-1', '-2']
 
         USED FUNCTIONS:
-        self.derivOrder
+
+        ``self.derivOrder``
         '''
         leftIndex = self.derivOrder // 2
         rightIndex = -(self.derivOrder - leftIndex)
@@ -250,7 +252,8 @@ class PureDerivGenerator(DerivGenerator):
     def createCoefficientList(self):
         '''
         DESCRIPTION:
-        Т.к. для CentralFunction умеем генерировать аппроксимации
+
+        Т.к. для ``CentralFunction`` умеем генерировать аппроксимации
         производных любого порядка, то эти аппроксимации содержат
         много слагаемых, перед каждым из которых имеется свой
         коэффициент.
@@ -269,6 +272,7 @@ class PureDerivGenerator(DerivGenerator):
     def diff(self, func=None):
         '''
         DESCRIPTION:
+
         This fucntion try to find
         method (common, special or interconnect)
         from params. Deprecated.
@@ -331,6 +335,7 @@ class PureDerivGenerator(DerivGenerator):
     def make_general_data(self):
         '''
         DESCRIPTION:
+
         DXM1 - means dx
         DXM2 - means dx^2
         '''
@@ -343,6 +348,7 @@ class PureDerivGenerator(DerivGenerator):
     def common_diff(self):
         '''
         DESCRIPTION:
+
         generate cpp derivative for central function
         or for border in case of non border variable
         (for example: for y at border x=0)
@@ -353,7 +359,8 @@ class PureDerivGenerator(DerivGenerator):
         for derivOrder = 2
         ddu/ddx = (u_{i+1}-2*u_{i}+u_{i-1})/(dx^2)
 
-        INPUT
+        INPUT:
+
         source[idx  # point in that derive will find
         +  stride  * Block0CELLSIZE  # +1 to some of {x,y,z} direction
                                      # (defined by stride)
@@ -364,6 +371,7 @@ class PureDerivGenerator(DerivGenerator):
         +  $ unknownVarIndex[0] $ ]  # shift, differ for each variable ('U': +0, 'V': +1)
         
         USED FUNCTIONS:
+
         str self.blockNumber
         self.delay
         str self.unknownVarIndex
@@ -450,11 +458,17 @@ class PureDerivGenerator(DerivGenerator):
             
         except:
             raise(SyntaxError("use make_general_data first"))
-        # try:
-        leftOrRightBoundary = self.leftOrRightBoundary
-        #except:
-        #    raise(SyntaxError("for special_diff self.leftOrRightBoundary"
-        #                      + "should be initiated first"))
+
+        try:
+            # in case if variable direction ortogonal to
+            # special border (ex: for side 2, direction y):
+            leftOrRightBoundary = self.leftOrRightBoundary
+        except:
+            # in case if variable direction paralel to
+            # special border (ex: for side 2, direction
+            # x common_diff must be used):
+            return(self.common_diff())
+
         # for debug
         self.print_dbg("special used")
 
