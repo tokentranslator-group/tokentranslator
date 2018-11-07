@@ -27,6 +27,19 @@ domain = model.gen_domain('hybridsolver')
 src = model.gen_cpp('hybridsolver')
 solver.run(domain, src)
 '''
+import os
+import sys
+import inspect
+# insert env dir into sys
+# env must contain env folder:
+currentdir = os.path.dirname(os.path
+                             .abspath(inspect.getfile(inspect.currentframe())))
+env = currentdir.find("env")
+env_dir = currentdir[:env]
+print(env_dir)
+if env_dir not in sys.path:
+    sys.path.insert(0, env_dir)
+
 from translator.tokenizer.tokenizer_main import LexNetTokenizer
 from env.equation.data.terms.input.wolfram.lex_net_wolfram import LexNetW
 
