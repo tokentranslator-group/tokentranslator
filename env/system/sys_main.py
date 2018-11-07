@@ -11,12 +11,19 @@ Created on Mar 19, 2015
 # if sys.version_info[0] > 2:
 #    from objectsTemplate import Object
 
-'''
-from math_space.common.equation.equation import Equation
-from math_space.common.system.sys_base import sysBase
-from math_space.common.system.sys_io import sysIO
-from math_space.common.system.sys_cpp import sysCpp
-'''
+import os
+import sys
+import inspect
+# insert env dir into sys
+# env must contain env folder:
+currentdir = os.path.dirname(os.path
+                             .abspath(inspect.getfile(inspect.currentframe())))
+env = currentdir.find("env")
+env_dir = currentdir[:env]
+print(env_dir)
+if env_dir not in sys.path:
+    sys.path.insert(0, env_dir)
+
 from env.equation.equation import Equation
 from env.system.sys_base import sysBase
 from env.system.sys_io import sysIO
@@ -74,3 +81,4 @@ class sysNet():
     def __repr__(self):
         
         return(str([eq.__repr__() for eq in self.eqs]))
+            

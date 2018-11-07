@@ -306,9 +306,9 @@ def test_term_cpp_diff(sent="U'=a*(D[U,{x,2}]+ D[U,{y,2}])"):
 
 if __name__ == '__main__':
 
-    test_term_cpp_diff()
+    # test_term_cpp_diff()
     # test_lex()
-    # test_all()
+    test_all()
     # test_lambda()
     # test_rand()
     # test_one(0, sympy=True, verbose=True)

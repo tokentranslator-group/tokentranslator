@@ -55,6 +55,30 @@
     END OF Algorithm.
 
 '''
+
+import os
+import sys
+import inspect
+# insert env dir into sys
+# env must contain env folder:
+currentdir = os.path.dirname(os.path
+                             .abspath(inspect.getfile(inspect.currentframe())))
+env = currentdir.find("env")
+env_dir = currentdir[:env]
+print(env_dir)
+if env_dir not in sys.path:
+    sys.path.insert(0, env_dir)
+
+'''
+from math_space.common.env.equation.parser.parser_main import EqParser
+from math_space.common.env.equation.tree.eq_tree import EqTree
+from math_space.common.env.equation.replacer.repl_main import EqReplacer
+from math_space.common.env.equation.args.args_main import EqArgs
+from math_space.common.env.equation.slambda.slambda_main import EqSlambda
+from math_space.common.env.equation.sampling.eq_sampling import EqSampling
+from math_space.common.env.equation.cas.cas_main import CAS
+'''
+
 from env.equation.parser.parser_main import EqParser
 from env.equation.tree.eq_tree import EqTree
 from env.equation.replacer.repl_main import EqReplacer
@@ -62,6 +86,7 @@ from env.equation.args.args_main import EqArgs
 from env.equation.slambda.slambda_main import EqSlambda
 from env.equation.sampling.eq_sampling import EqSampling
 from env.equation.cas.cas_main import CAS
+
 
 import sys
 import inspect

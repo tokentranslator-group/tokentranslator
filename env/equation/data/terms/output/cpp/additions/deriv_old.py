@@ -26,7 +26,20 @@ firstIndex
 secondIndexSTR
 
 '''
+
+import os
 import sys
+import inspect
+# insert env dir into sys
+# env must contain env folder:
+currentdir = os.path.dirname(os.path
+                             .abspath(inspect.getfile(inspect.currentframe())))
+env = currentdir.find("env")
+env_dir = currentdir[:env]
+print(env_dir)
+if env_dir not in sys.path:
+    sys.path.insert(0, env_dir)
+
 from env.equation.data.terms.output.cpp.additions.someFuncs import NewtonBinomCoefficient
 from env.equation.data.terms.output.cpp.additions.someFuncs import generateCodeForMathFunction
 
@@ -217,13 +230,11 @@ class PureDerivGenerator(DerivGenerator):
     def createIndicesList(self):
         '''
         DESCRIPTION:
-
-        Т.к. для ``CentralFunction`` умеем генерировать аппроксимации
+        Т.к. для CentralFunction умеем генерировать аппроксимации
         производных любого порядка, то эти аппроксимации содержат
         много слагаемых, каждое из которых имеет свой индекс.
 
         EXAMPLES:
-
         For derivOrder = 1
         [' + 0', '-1']
         
@@ -234,8 +245,7 @@ class PureDerivGenerator(DerivGenerator):
         [' + 1', ' + 0', '-1', '-2']
 
         USED FUNCTIONS:
-
-        ``self.derivOrder``
+        self.derivOrder
         '''
         leftIndex = self.derivOrder // 2
         rightIndex = -(self.derivOrder - leftIndex)
@@ -252,8 +262,7 @@ class PureDerivGenerator(DerivGenerator):
     def createCoefficientList(self):
         '''
         DESCRIPTION:
-
-        Т.к. для ``CentralFunction`` умеем генерировать аппроксимации
+        Т.к. для CentralFunction умеем генерировать аппроксимации
         производных любого порядка, то эти аппроксимации содержат
         много слагаемых, перед каждым из которых имеется свой
         коэффициент.
@@ -272,7 +281,6 @@ class PureDerivGenerator(DerivGenerator):
     def diff(self, func=None):
         '''
         DESCRIPTION:
-
         This fucntion try to find
         method (common, special or interconnect)
         from params. Deprecated.
@@ -335,7 +343,6 @@ class PureDerivGenerator(DerivGenerator):
     def make_general_data(self):
         '''
         DESCRIPTION:
-
         DXM1 - means dx
         DXM2 - means dx^2
         '''
@@ -348,7 +355,6 @@ class PureDerivGenerator(DerivGenerator):
     def common_diff(self):
         '''
         DESCRIPTION:
-
         generate cpp derivative for central function
         or for border in case of non border variable
         (for example: for y at border x=0)
@@ -359,8 +365,7 @@ class PureDerivGenerator(DerivGenerator):
         for derivOrder = 2
         ddu/ddx = (u_{i+1}-2*u_{i}+u_{i-1})/(dx^2)
 
-        INPUT:
-
+        INPUT
         source[idx  # point in that derive will find
         +  stride  * Block0CELLSIZE  # +1 to some of {x,y,z} direction
                                      # (defined by stride)
@@ -371,7 +376,6 @@ class PureDerivGenerator(DerivGenerator):
         +  $ unknownVarIndex[0] $ ]  # shift, differ for each variable ('U': +0, 'V': +1)
         
         USED FUNCTIONS:
-
         str self.blockNumber
         self.delay
         str self.unknownVarIndex
@@ -421,6 +425,7 @@ class PureDerivGenerator(DerivGenerator):
     def special_diff(self, func='None'):
         '''
         DESCRIPTION:
+
         Generate derivative for border variable.
         
         for derivOrder = 1:
@@ -433,6 +438,7 @@ class PureDerivGenerator(DerivGenerator):
         ddu/ddx = 2*(u_{n-1}-u_{n}-dy*phi(t,y))/(dx^2)
 
         INPUT:
+
         leftOrRightBoundary --- это число либо 0 (если краевое условие наложено на левую границу)
                                 либо 1 (если краевое условие наложено на правую границу)
         leftOrRightBoundary = 0 - right border
@@ -440,6 +446,7 @@ class PureDerivGenerator(DerivGenerator):
         specialIncrement - sin(x)*specialIncrement
 
         USED FUNCTIONS:
+
         for self.userIndepVariables
         str self.blockNumber
         self.derivOrder
@@ -497,7 +504,7 @@ class PureDerivGenerator(DerivGenerator):
                      + str(self.blockNumber) + 'CELLSIZE + '
                      + str(self.unknownVarIndex) + ']')
             return('(2.0 * '+increment+' * '+'('+first+' - '
-                   + second+ m1 * ' - ' + m2 * ' + ' +
+                   + second + m1 * ' - ' + m2 * ' + ' +
                    '(' + boundaryValue + ') * '
                    + specialIncrement + '))')
         else:
