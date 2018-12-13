@@ -127,7 +127,7 @@ eqs = [
      ('br_left', [True, False, False]),
      ('re', 6.1)),
 
-    ('pow', r'${args}\)\^${{arg_float}}',
+    ('pow', r"${args}\)\^${{arg_float}}",
      ('br_right', [False, False, True]),
      ('re', 10)),
 

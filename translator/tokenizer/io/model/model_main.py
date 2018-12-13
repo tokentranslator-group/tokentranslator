@@ -1,10 +1,15 @@
-# parser$ ~/anaconda3/bin/python3 -m translator.tokenizer.io.model
+'''This class is extention of BaseDB for some specific task.
+It contain methods that cannot be generalised, they are specific
+for task environmant.
+'''
+# parser$ ~/anaconda3/bin/python3 -m translator.tokenizer.io.model.model_main
 
 # import peewee as pw
 from datetime import date
 
-from translator.tokenizer.io.model_base import BaseDB
-from translator.tokenizer.io.model_tables import create_dialect_table
+from translator.tokenizer.io.model.model_base import BaseDB
+from translator.tokenizer.io.model.model_tables import create_dialect_table
+from translator.tokenizer.io.model.model_tables import create_users_table
 
 
 class TokenizerDB(BaseDB):
@@ -51,22 +56,48 @@ class TokenizerDB(BaseDB):
         ('eq', "Eq(${eqs})Eq",
         ('a',), ('ex',)),
     '''
-    def __init__(self, path="translator/tokenizer/io/demo_dialect.db"):
+    def __init__(self, path="translator/tokenizer/io/model/demo_dialect.db"):
         
         BaseDB.__init__(self, path)
 
     def create_dialect_db(self):
-        BaseDB.create_db(self, create_dialect_table)
+        BaseDB.create_db(self, create_dialect_table,
+                         create_users_table)
 
-    def show_all_entries(self):
+    def create_users_table(self):
+       
+        try:
+            self.tables_dict
+        except AttributeError:
+            self.tables_dict = {}
 
-        out = BaseDB.show_all_entries(self, table_name="dialect")
+        users_tables = self.load_users_tables(create_users_table)
+        self.create_db_tables(users_tables)
+
+    def create_model_table(self):
+
+        try:
+            self.tables_dict
+        except AttributeError:
+            self.tables_dict = {}
+
+        model_tables = self.load_model_tables(create_dialect_table)
+        self.create_db_tables(model_tables)
+
+    def load_all_tables(self):
+
+        BaseDB.load_tables(self, create_dialect_table,
+                           create_users_table)
+
+    def show_all_entries(self, table_name="dialect"):
+
+        out = BaseDB.show_all_entries(self, table_name=table_name)
         return(out)
 
     def fill_dialect_db(self):
         
         db = self.db
-        table = self.tables[0]
+        table = self.tables_dict["dialect"]
 
         db.connect()
 
@@ -94,15 +125,31 @@ class TokenizerDB(BaseDB):
                  "pattern_type": ('txt',)}
         '''
                       
-        table = self.tables[0]
+        table = self.tables_dict["dialect"]
+
+        if "created_date" in entry:
+            entry.pop("created_date")
+
         self.add_table_entry(table, entry)
+
+    def select_pattern(self, term_name):
+        '''
+        Select with term_name.
+        (see BaseDB.select_table_entry)
+        '''
+        table = self.tables_dict["dialect"]
+        res = self.select_table_entry(table, 'term_name', term_name)
+        return(res)
 
     def edit_pattern(self, term_name, props):
         '''
         Edit  properties of pattern's with term_name.
         (see BaseDB.edit_table_entry)
         '''
-        table = self.tables[0]
+        table = self.tables_dict["dialect"]
+        if "created_date" in props:
+            props.pop("created_date")
+
         self.edit_table_entry(table, 'term_name', term_name,
                               props)
         
@@ -111,12 +158,14 @@ class TokenizerDB(BaseDB):
         Delete pattern with term_name.
         (see ``BaseDB.del_table_entry``)
         '''
-        table = self.tables[0]
+        table = self.tables_dict["dialect"]
         self.del_table_entry(table, 'term_name', term_name)
 
 
-if __name__ == '__main__':
-    
+def test_create():
+
+    print("\ntest create db")
+
     agent = TokenizerDB()
     agent.create_dialect_db()
     agent.fill_dialect_db()
@@ -137,3 +186,66 @@ if __name__ == '__main__':
     agent.del_pattern("pred")
     
     agent.show_all_entries()
+
+    return(agent)
+
+
+def test_load():
+
+    print("\ntest load tables")
+
+    agent = TokenizerDB()
+    agent.load_all_tables()
+    
+    agent.show_all_entries()
+
+    return(agent)
+
+
+def test_select():
+
+    print("\ntest select:")
+
+    agent = test_load()
+    res = agent.select_pattern("let")
+    
+    print("\nresults count:")
+    print(res.count)
+
+    return(agent)
+
+
+def test_create_user_table():
+
+    agent = TokenizerDB()
+    agent.create_users_table()
+    data = {
+        "username": "admin",
+        "is_admin": True,
+        "password": "13",
+        "email": "email"}
+    agent.create_new_user(data)
+    userexist = agent.check_user_exist(data)
+    print("\nuserexist:")
+    print(userexist)
+
+    checkuser = agent.check_user(data)
+    print("\ncheckuser:")
+    print(checkuser)
+
+    agent.show_all_entries(table_name="user")
+
+    
+def test_show_all_entries_user():
+    agent = TokenizerDB()
+    agent.load_all_tables()
+    agent.show_all_entries(table_name="user")
+
+
+if __name__ == '__main__':
+
+    # test_create()
+    # test_create_user_table()
+    test_load()
+    test_select()
+    test_show_all_entries_user()

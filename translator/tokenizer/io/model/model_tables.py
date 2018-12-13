@@ -12,6 +12,24 @@ def create_base_model(db):
     return(ModelBase)
 
 
+def create_users_table(db):
+
+    '''Create users tables'''
+
+    ModelBase = create_base_model(db)
+
+    class User(ModelBase):
+        # automatic primary key named 'id'
+        username = pw.CharField(unique=True)
+        is_admin = pw.BooleanField(default=False)
+        password = pw.CharField()  # TODO hash
+        comment = pw.CharField(default="")
+        email = pw.CharField()
+        # expirydate = pw.DateField()
+
+    return({"user": User})
+
+
 def create_dialect_table(db):
 
     '''Create all environmant tables'''
