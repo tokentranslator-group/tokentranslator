@@ -12,10 +12,12 @@ Command::
 '''
 from translator.tokenizer.tokenizer_main import TokenizerNet
 from translator.tokenizer.patterns.patterns_list.tests.dialects import cs, eqs
-from translator.tokenizer.tests.tests_list import tests_list_cs
+from translator.tokenizer.tests.tests_list import tests_dict_cs
 from translator.tokenizer.tests.tests_list import cs_asserted
-from translator.tokenizer.tests.tests_list import tests_list_eqs
+from translator.tokenizer.tests.tests_list import tests_dict_eqs
 from translator.tokenizer.tests.tests_list import eqs_asserted
+
+from translator.grammar.cyk import preproc as preproc_cyk
 
 
 def make_tokenizer(dialect):
@@ -45,7 +47,7 @@ def test_cs(use_asserted):
 
     failed = []
 
-    if (len(tests_list_cs) != len(cs_asserted)
+    if (len(tests_dict_cs) != len(cs_asserted)
         and use_asserted):
         msg = ("\nlens of tests_list_cs and cs_asserted"
                + " must be same"
@@ -55,7 +57,8 @@ def test_cs(use_asserted):
 
         raise(BaseException(msg))
 
-    for i, sent_list in enumerate(tests_list_cs):
+    for i in tests_dict_cs:
+        sent_list = tests_dict_cs[i]
 
         print("\nsent_list:")
         print(sent_list)
@@ -63,6 +66,8 @@ def test_cs(use_asserted):
         sent_list = [sent.replace(" ", "")
                      for sent in sent_list]
         out = tokenizer.lex(sent_list)
+
+        out = preproc_cyk(out)
 
         print("\n out:")
         print(out)
@@ -89,14 +94,14 @@ def test_cs(use_asserted):
         '''
     return(failed)
 
-
+    
 def test_eqs(use_asserted):
     
     tokenizer = make_tokenizer(eqs)
     
     failed = []
 
-    if (len(tests_list_eqs) != len(eqs_asserted)
+    if (len(tests_dict_eqs) != len(eqs_asserted)
         and use_asserted):
         msg = ("\nlens of tests_list_eqs and eqs_asserted"
                + " must be same"
@@ -112,7 +117,8 @@ def test_eqs(use_asserted):
     for entry in templates:
         print(entry[0]+": "+entry[1])
 
-    for i, sent_list in enumerate(tests_list_eqs):
+    for i in tests_dict_eqs:
+        sent_list = tests_dict_eqs[i]
 
         print("\nsent_list:")
         print(sent_list)
@@ -121,6 +127,9 @@ def test_eqs(use_asserted):
                      for sent in sent_list]
 
         out = tokenizer.lex(sent_list)
+
+        out = preproc_cyk(out)
+
         print("\n out:")
         print(out)
 
@@ -150,10 +159,10 @@ def test_eqs(use_asserted):
 if __name__ == "__main__":
     
     # make_tokenizer(cs)
-    faileds = test_cs(True)
-    # faileds = test_eqs(True)
+    # faileds = test_cs(True)
+    faileds = test_eqs(True)
 
     for failed in faileds:
-        print("/n fail:")
+        print("\n fail:")
         print(failed)
 

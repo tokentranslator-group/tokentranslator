@@ -130,9 +130,9 @@ def test_3_2():
 
     bound.compile_parts(subterms_values)
     
-    print("\ntest_3_1 value_lex:")
+    print("\ntest_3_2 value_lex:")
     print(bound.value_lex)
-    print("\ntest_3_1 template:")
+    print("\ntest_3_2 template:")
     print(bound.template)
     out = re.search(bound.template, "V(t-1.1,{x,0.7}{y,0.7})")
     print("\nre out:")
@@ -271,6 +271,9 @@ def test_10():
                            'br_left', [True, True, False])
     sent = '\\for_all x \in X: x == y'
 
+    print("\nsent:")
+    print(sent)
+
     subterms_values = {'for_all': r"\\for_all"}
     p_cond_all.compile_parts(subterms_values)
 
@@ -380,7 +383,7 @@ def test_14():
     for term ``p_cond_all``
     r"${{for_all}}${in}:${norm}"'''
 
-    p_cond_all = PatternRe('cond_all', r"${{for_all}}${in}:${norm}",
+    p_cond_all = PatternRe('cond_all', r"\(${{for_all}}${in}:${norm}",
                            'br_left', [True, True, False])
     subterms_values = {'for_all': r"\\for_all"}
     p_cond_all.compile_parts(subterms_values)
@@ -388,13 +391,13 @@ def test_14():
     p_cond_all.set_grammar_parts(grammar_parts)
     
     print('\n test_14.0: %s' % (p_cond_all.template))
-    sent = ['\\for_all x \in X: x == y']
+    sent = ['(\\for_all x \in X: x == y)']
     print("sent: %s" % (str(sent)))
     out = p_cond_all.split(sent)
     print(out)
     
     print('\n test_14.1: %s' % (p_cond_all.template))
-    sent = [r'\for_all x \in X: x == y and \for_all y \in Y: y == z']
+    sent = [r'(\for_all x \in X: x == y) and (\for_all y \in Y: y == z)']
     print("sent: %s" % (str(sent)))
     out = p_cond_all.split(sent)
     print(out)

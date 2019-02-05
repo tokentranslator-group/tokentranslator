@@ -61,13 +61,16 @@ def test_2():
     p_cond_all = PatternTxt('cond_all', r"\for_all${in}:${norm}",
                             'br_left', [True, True, False])
 
+    print("\np_cond_all.subterm_pattern_cell_group:")
     print(p_cond_all.subterm_pattern_cell_group)
+    print("\np_cond_all.template:")
+    print(p_cond_all.template)
     test_2 = p_cond_all.get_splited(group=True)
-    print("get_splited(group=True)")
+    print("\nget_splited(group=True)")
     print(test_2)
     print(p_cond_all.subterm_pattern_cell)
     test_2 = p_cond_all.get_splited(group=False)
-    print("get_splited(group=False)")
+    print("\nget_splited(group=False)")
     print(test_2)
 
 
@@ -258,7 +261,7 @@ def test_11():
     for term ``p_cond_all``'''
     
     p_in = PatternTxt('in', r"${var}\in${var}", 'br_mid')
-    p_cond_all = PatternTxt('cond_all', r"\for_all${in}:${norm}",
+    p_cond_all = PatternTxt('cond_all', r"(\for_all${in}:${norm}",
                             'br_left', [True, True, False])
 
     grammar_parts = get_tests_grammar_parts()
@@ -266,13 +269,13 @@ def test_11():
     p_cond_all.set_grammar_parts(grammar_parts)
 
     print('\n test_11.0: %s' % (p_cond_all.template))
-    sent = ['\\for_all x \in X: x == y']
+    sent = ['(\\for_all x \in X: x == y)']
     print("sent: %s" % (str(sent)))
     out = p_cond_all.split(sent)
     print(out)
     
     print('\n test_11.1: %s' % (p_cond_all.template))
-    sent = ['\\for_all x \in X: x == y and \\for_all y \in Y: y == z']
+    sent = ['(\\for_all x \in X: x == y) and (\\for_all y \in Y: y == z)']
     print("sent: %s" % (str(sent)))
     out = p_cond_all.split(sent)
     print(out)

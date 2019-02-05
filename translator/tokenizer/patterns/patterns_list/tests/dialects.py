@@ -61,15 +61,18 @@ cs = [
     # sin0(, abelian_prim(, a(:
     ('pred', r"(?P<obj>[a-z|A-Z|_|0-9]+)\(",
      ('br_left', [True, False, False]),
-     ('re', 0)),
+     ('re', 0.1)),
 
     ('def_0', "${kvs}:${args}",
      ('br_mid', [False, True, False]),
      ('txt',)),
 
+    # order used because in case with brackets
+    # this can be interperated as pred
+    # (like \\in(X:...)):
     ('in_0', "${kvs}\\in${args}",
      ('br_mid', [False, True, False]),
-     ('txt',)),
+     ('txt', 0)),
 
     # FOR kv:
     ('for_all', "(\\for_all${x}",
@@ -127,8 +130,13 @@ eqs = [
      ('br_left', [True, False, False]),
      ('re', 6.1)),
 
-    ('pow', r"${args}\)\^${{arg_float}}",
-     ('br_right', [False, False, True]),
+    # (-a) or (-(a)):
+    ('unary_div', r"(-${args}",
+     ('br_left', [True, False, False]),
+     ('txt',)),
+
+    ('pow', r"${args}\^${args_degree}",
+     ('br_mid', [False, True, False]),
      ('re', 10)),
 
     # sin, abelian, a:
@@ -188,4 +196,49 @@ eqs = [
     ('base_coeffs', r"a-s|u-w",
      ('part',), ('re',)),
 
+    ('add', r"${something}+${something}",
+     ('br_mid', [False, True, False]),
+     ('txt',)),
+
+    ('mul', r"${something}*${something}",
+     ('br_mid', [False, True, False]),
+     ('txt',)),
+
+    ('sub', r"${something}-${something}",
+     ('br_mid', [False, True, False]),
+     ('txt',)),
+
+    ('div', r"${something}/${something}",
+     ('br_mid', [False, True, False]),
+     ('txt',)),
+    
+    ('eq', r"${something}=${something}",
+     ('br_mid', [False, True, False]),
+     ('txt',)),
+
+    ('eq_bool', r"${something}==${something}",
+     ('br_mid', [False, True, False]),
+     ('txt',)),
+
+    ('uneq', r"${something}!=${something}",
+     ('br_mid', [False, True, False]),
+     ('txt',)),
+
+    ('le', r"${something}<=${something}",
+     ('br_mid', [False, True, False]),
+     ('txt',)),
+
+    ('lt', r"${something}<${something}",
+     ('br_mid', [False, True, False]),
+     ('txt',)),
+
+    ('ge', r"${something}>=${something}",
+     ('br_mid', [False, True, False]),
+     ('txt',)),
+
+    ('gt', r"${something}>${something}",
+     ('br_mid', [False, True, False]),
+     ('txt',)),
 ]
+
+
