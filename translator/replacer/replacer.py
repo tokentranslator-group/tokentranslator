@@ -9,23 +9,23 @@ class Gen():
     metaclass = abc.ABCMeta
 
     '''Base class for tree's nodes translator
-    When it calling (self.__call__) for some node it choice
+    When it calling ``self.__call__`` for some node it choice
     node type (bracket or not) and add output
     to that according to terms generators id.
-    For that method self.tranlate and self.translate_brackets
+    For that method ``self.tranlate`` and ``self.translate_brackets``
     must exist. They default value implemented here but if more
     behavior is needed they must be owerided then.
     This methods should add some output to node. For that
-    self.set_output, self.set_output_out, self.set_output_data
+    ``self.set_output``, ``self.set_output_out``, ``self.set_output_data``
     must be implemented (distination to set data
-    ex: node.output.cpp.out)
+    ex: ``node.output.cpp.out``)
 
-    When it initiated (self.__init__) it set self.global_params
+    When it initiated (``self.__init__``) it set ``self.global_params``
     and terms generator from
-    self.get_terms_gen_cls and self.get_terms_br_gen_cls
+    ``self.get_terms_gen_cls`` and ``self.get_terms_br_gen_cls``
     so this method must be implimentend.
 
-    For extract term id for not brackets term self.get_term_id
+    For extract term id for not brackets term ``self.get_term_id``
     method default exist but if more behavior needed it must be owerided.
     For bracket term id see replacer_brackets.
 
@@ -36,7 +36,7 @@ class Gen():
     def __init__(self):
 
         '''set up terms generator from
-        self.get_terms_gen_cls and self.get_terms_br_gen_cls
+        ``self.get_terms_gen_cls`` and ``self.get_terms_br_gen_cls``
         that must be impolimented.'''
 
         # some global data to extract from all
@@ -74,7 +74,7 @@ class Gen():
 
     def __call__(self, node):
 
-        '''Check if node.name is Word and if it is, call
+        '''Check if ``node.name`` is Word and if it is, call
         tranlate method for simple nodes,
         translate_brackets for brackets (node.name == 'br').
 

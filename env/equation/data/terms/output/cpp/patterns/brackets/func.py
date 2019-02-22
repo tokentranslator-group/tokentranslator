@@ -21,7 +21,7 @@ class Func():
         self.net = net
         self.gnet = self.net.net
 
-        # this meen left_term.name == 'f'
+        # this mean left_term.name == 'f'
         # right_node.name == ')'
         self.id = 'l:f|r:)'
 

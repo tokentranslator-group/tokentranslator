@@ -20,7 +20,7 @@ class Pow():
     def __init__(self, net):
         self.net = net
         self.gnet = self.net.net
-        # this meen rigth_term.name == 'w'
+        # this mean rigth_term.name == 'w'
         # left_term.name == '('
         self.id = 'l:(|r:w'
 
