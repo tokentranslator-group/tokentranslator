@@ -64,7 +64,6 @@ def map_nx_id_to_names(net):
             H.add_node()
         
 
-
 def map_net_cy_to_nx(net_dict):
 
     links = []
