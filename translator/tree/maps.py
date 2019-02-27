@@ -176,7 +176,7 @@ def map_net_nx_to_cy(net):
         # set position for each node:
         cy_node_entry["position"] = nx_node_entry["position"].copy()
         cy_node_entry["coords"] = nx_node_entry["coords"].copy()
-
+        
         cy_nodes.append(cy_node_entry)
 
     cy_edges = []
