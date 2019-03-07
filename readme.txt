@@ -1,4 +1,6 @@
 parser$ python3 -m env.equation.tests
+parser$ python3 -m env.equation_net.tests
+parser$ python3 -m env.system.tests_sys
 python3 -m translator.grammar.tests_cyk
 python3 -m translator.tree.tests_map
 python3 -m translator.main.test_parser_general

@@ -28,11 +28,12 @@ class Pow():
 
         '''Add cpp out to brackets'''
 
+        successors = self.gnet.get_successors(node_br)
+        
+        left_node = successors[0]
+        right_node = successors[-1]
 
-        left_node = node_br[0]
-        right_node = node_br[-1]
-
-        args_node = node_br[1]
+        args_node = successors[1]
         
         # get term data:
         self.get_node_data(left_node, right_node)

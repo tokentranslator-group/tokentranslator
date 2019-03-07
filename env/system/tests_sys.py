@@ -106,5 +106,5 @@ def test_sinch_sys():
 
 if __name__ == '__main__':
     # test_sys()
-    # test_sinch_sys()
-    test_copy()
+    test_sinch_sys()
+    # test_copy()
