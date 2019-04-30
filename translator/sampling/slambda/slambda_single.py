@@ -1,14 +1,21 @@
-# parser$ python3 -m translator.sampling.slambda.tests_slambda
+from translator.sampling.slambda.data.stable import sign_module_name
+import translator.sampling.slambda.data.gens.algebra.groups as groups
 
 from copy import deepcopy
 
-from translator.sampling.slambda.tree_editor import test_set_slambda
-# from translator.tree.tests_map import test as test_map
-# from translator.sampling.slambda.tree_editor import TreeEditor
+import logging
 
-from translator.sampling.slambda.data.stable import stable
-from translator.sampling.slambda.data.stable import sign_module_name
-import translator.sampling.slambda.data.gens.algebra.groups as groups
+# if using from tester.py uncoment that:
+# create logger that child of tester loger
+# logger = logging.getLogger('tests.tester.gen_1d')
+
+# if using directly uncoment that:
+
+# create logger
+log_level = logging.INFO  # logging.DEBUG
+logging.basicConfig(level=log_level)
+logger = logging.getLogger('slambda_single')
+logger.setLevel(level=log_level)
 
 
 def sampling_of_single_node(node, ventry, stable):
@@ -65,12 +72,12 @@ def sampling_of_single_node(node, ventry, stable):
     target_attrs = tuple(target_attrs)
     target_sign_val = tuple(target_sign_val)
     target_sign = tuple(target_sign)
-    print("target_attrs:")
-    print(target_attrs)
-    print("target_sign_val:")
-    print(target_sign_val)
-    print("target_sign:")
-    print(target_sign)
+    logger.debug("target_attrs:")
+    logger.debug(target_attrs)
+    logger.debug("target_sign_val:")
+    logger.debug(target_sign_val)
+    logger.debug("target_sign:")
+    logger.debug(target_sign)
 
     # memorization:
     if "mem_sign" not in node_data:
@@ -98,8 +105,8 @@ def sampling_of_single_node(node, ventry, stable):
         msg = ("no such signature for: " + node_data["stname"]
                + " " + str(target_sign))
         print(msg)
-        print("available signs for node ", node_data["stname"])
-        print(stable[node_data["stname"]])
+        logger.debug("available signs for node ", node_data["stname"])
+        logger.debug(stable[node_data["stname"]])
         # ventry["failure_statuses"][node_data["name"]] = msg
         return((None, msg))
     else:
@@ -173,92 +180,3 @@ def create_new_entry(node_data, sign, sign_values, parent_entry):
     parent_entry["successors_count"] += 1
     n_entry["successors_count"] = 0
     return(n_entry)
-
-
-if __name__ == "__main__":
-
-    # target proposal:
-    # "abelian(G) \\and subgroup(H, G,) => abelian(H)"
-    # set slambda data to each node:
-    net, nodes = test_set_slambda(22)
-
-    # take idd of subgroup and abelian terms:
-    subgroup_idd = [idd for idd in nodes
-                    if net.node[idd]["data"]["slambda"]["stname"] == "subgroup"][0]
-    abelian_idd = [idd for idd in nodes
-                   if net.node[idd]["data"]["slambda"]["stname"] == "abelian"][0]
-
-    idds = [("subgroup", subgroup_idd),
-            ("abelian", abelian_idd)]
-
-    # create value table:
-    test_vtable = [
-
-        # both H and G are given
-        # => just check target proposal:
-        {"H": ("(2,4)(3,5)",),
-         "G": ("(2,4)(3,5)", "(2,5,4,3)"),
-         "idd": str(["s"]), "successors_count": 0},
-        
-        # G is not given
-        # => must be generating during sampling
-        {"H": ("(2,3)(4,5)",),
-         subgroup_idd: True, abelian_idd: True,
-         "idd": str(["s"]), "successors_count": 0},
-        
-        # H is not ginven
-        # => must be generating during sampling
-        {"G": ("(1,2)(3,5)", "(1,5,2,3)"),
-         subgroup_idd: True, abelian_idd: True,
-         "idd": str(["s"]), "successors_count": 0},
-        {"G": ("(1,4)(2,3)", "(1,3)(2,4)"),
-         abelian_idd: True, subgroup_idd: True,
-         "idd": str(["s"]), "successors_count": 0}]
-    
-    print("subgroup node:\n")
-    print(net.node[subgroup_idd])
-    print("\nabelian node:\n")
-    print(net.node[abelian_idd])
-
-    print("\n========= Tests for each entry in vtable ===========\n")
-    for entry in test_vtable:
-        # FOR print:
-        print("\n+++++++++++++ for entry: +++++++++++++")
-        print(entry)
-
-        for (pred_name, pred_idd) in idds:
-            print("\n------------for " + pred_name + ": ",
-                  pred_idd, "------------")
-            pred_node_data = net.node[pred_idd]["data"]["slambda"]
-
-            # print node args:
-            print("from node:")
-            print(pred_name + "(", str(pred_node_data["args"][:-1]),
-                  ")\n")
-
-            # print node args entry values:
-            pred_args = [entry[arg] if (arg in entry
-                                        and entry[arg] is not None)
-                         else arg
-                         for arg in pred_node_data["args"][:-1]]
-            pred_out = "None"
-            if pred_idd in entry:
-                pred_out = entry[pred_idd]
-            print("from vtentry:")
-            print(pred_name + "(", str(pred_args), ") = ",
-                  pred_out, "\n")
-            # print(net.node[subgroup_idd]["data"]["slambda"])
-            # END FOR
-
-            out, msg = sampling_of_single_node(net.node[pred_idd],
-                                               entry, stable)
-            print("out:")
-            print(out)
-            if out is not None:
-                print(len(out))
-            print("msg:")
-            print(msg)
-
-    print("\ntest_vtable:")
-    for entry in test_vtable:
-        print(entry, "\n")

@@ -5,6 +5,11 @@ python3 -m translator.grammar.tests_cyk
 python3 -m translator.tree.tests_map
 python3 -m translator.main.test_parser_general
 
+# Test sampling:
+parser$ python3 -m translator.sampling.slambda.tree_editor
+parser$ python3 -m translator.sampling.slambda.tests_slambda
+parser$ python3 -m translator.sampling.slambda.tests_slambda_synch
+
 # Test model:
 # parser$ ~/anaconda3/bin/python3 -m gui.web.model.model_main
 
