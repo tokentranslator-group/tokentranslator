@@ -66,5 +66,7 @@ tests_list_main = [
     "U'=-(U(t-1.1)+V)",
     "f(x, y,)+g(y,z,)+h(x,z,)",
     "exp(t)",
-    "U'=a*(sin(a+b)+U)+c*D[U,{x,2}]"]
+    "U'=a*(sin(a+b)+U)+c*D[U,{x,2}]",
+    "x*(x)^(3)",
+    "x*sqrt(x)"]
 
