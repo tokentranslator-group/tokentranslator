@@ -24,7 +24,7 @@ env_dir = currentdir[:env]
 if env_dir not in sys.path:
     sys.path.insert(0, env_dir)
 
-from env.equation.equation import Equation
+from env.equation_net.equation import Equation
 from env.system.sys_base import sysBase
 from env.system.sys_io import sysIO
 from env.system.sys_cpp import sysCpp
@@ -49,7 +49,7 @@ class sysNet():
     '''
 
     def __init__(self, name=None, system=[], vars="x",
-                 cpp=False, EqBilder=Equation):
+                 cpp=False, EqBilder=Equation, lex_terms_db=None):
         self.base = sysBase(self, name, vars, cpp)
         self.io = sysIO(self)
         self.cpp = sysCpp(self)
@@ -57,8 +57,13 @@ class sysNet():
         self.plotter = sysPlotter(self)
         self.EqBilder = EqBilder
 
-        self.eqs = [EqBilder(sent) if type(sent) == str else sent
-                    for sent in system]
+        if lex_terms_db is None:
+            self.eqs = [EqBilder(sent) if type(sent) == str else sent
+                        for sent in system]
+        else:
+            self.eqs = [EqBilder(sent, db=lex_terms_db)
+                        if type(sent) == str else sent
+                        for sent in system]
 
         for i, eq in enumerate(self.eqs):
             try:

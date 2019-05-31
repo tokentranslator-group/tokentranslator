@@ -1,13 +1,6 @@
-from translator.grammar.grammars import gm_to_cnf
-from env.clause.data.grammars.cl_grammar import gm_0
-from translator.grammar.cyk import cyk
-
-from translator.tokenizer.tokenizer_main import ClTokenizer
-
-
-from translator.tree.tree_converter import convert
-from translator.tree.nodes import NodeCommon
-
+from translator.tokenizer.patterns.patterns_list.tests.dialects import cs
+from translator.grammar.grammars import get_fmw
+from translator.main.parser_general import ParserGeneral
 
 import logging
 
@@ -29,118 +22,57 @@ class ClParser():
 
     def __init__(self, net):
         self.net = net
+
+        self.grammar_fmw = get_fmw(ms=[["clause_where", "clause_for",
+                                        "clause_into"],
+                                       "def_0", "in_0",
+                                       ["if", "if_only", "if_def"],
+                                       "clause_or", "conj"])
+        self.dialects_patterns = {}
         
-        # FOR lex_nets:
-        self.lex_nets = {}
+        if self.net.db is None:
+            print("patterns from tests.dialects.eqs used")
+            self.dialects_patterns["hol"] = cs
+        else:
+            print("patterns from db used")
+            dialect = self.net.db.get_entries_to_list()
+            self.dialects_patterns["hol"] = dialect
 
-        # patterns (lexems) for wolfram terms:
-        self.lex_nets['wolfram'] = LexNetW()
-        # END FOR
-
-        # FOR tokenizers:
-        self.tokenizers = {}
-
-        # init wolfram tokenizer:
-        self.tokenizers['wolfram'] = LexNetTokenizer(self.lex_nets['wolfram'])
-        # END FOR
+        self.mid_names = {"ops": ["clause_where", "clause_for",
+                                  "clause_into",
+                                  "def_0", "in_0",
+                                  "if", "if_only", "if_def",
+                                  "clause_or", "conj"]}
+        self.parsers = {}
+        self.parsers["hol"] = ParserGeneral(self.dialects_patterns["hol"],
+                                            self.grammar_fmw, self.mid_names)
         
-        self.tokenizer_current = self.tokenizers['wolfram']
+        self.parser_current = "hol"
 
-        # lexical analysis of sent:
-        self.lex = self.tokenizer_current.lex
+    def show_patterns(self):
+
+        '''call ``tokenizer.show_patterns`` method'''
+
+        self.parsers[self.parser_current].show_patterns()
 
     def parse(self):
-
-        '''Parse sent with cyk parser and lexems from lex.
-
-        Input:
-        snet - string either like "U'= F" or "F" where
-               F must satisfy grammar's rules and lexem's patterns.
-        Return:
-        operator tree self.eq_tree.
-        '''
-
-        sent = self.net.sent
-
-        # work with prefix:
-        sent = self._prefix_step(sent)
-
-        self.eq_from_lex = self.lex(sent=sent)
-                
-        logger.debug("self.eq_from_lex:")
-        logger.debug(self.eq_from_lex)
-
-        self.eq_tree = self._sym_step(self.eq_from_lex)
-
-        # convert left-midle-right part of eq
-        # to tree (for replacer):
-        # self._convert_to_node()
-
-    def _prefix_step(self, sent):
-
-        # remove spaces:
-        sent = sent.replace(' ', "")
-        return(sent)
-
-    def _sym_step(self, goal_sent):
-
-        '''Transform list of Word's into operation's tree
-        with grammar'''
-
-        # transform grammar to cnf:
-        grammar_cnf = gm_to_cnf(gm_0)  # grammar_pow_f
-
-        # parse
-        logger.debug("for cyk:")
-        logger.debug(goal_sent)
-        p, t = cyk(goal=goal_sent, grammar=grammar_cnf)
-        self.from_cyk = (p, t)
-
-        # return(t)
-        # convert parse tree to operator's tree:
-        ot = convert(t)
-        self.operator_tree = ot
-
-        return(ot)
-
-    def _convert_to_node(self):
-
-        '''Get eq_left, eq_mid, eq_right = self.eq
-        it convert eq_left and eq_right to
-        operator_tree, then convert eq_mid to Node like objects,
-        then unite all to single Node like object.'''
-
-        eq_left, eq_mid, eq_right = self.eq
-        if eq_left is not None:
-            eq_left = self._sym_step(eq_left)
-        if eq_right is not None:
-            eq_right = self._sym_step(eq_right)
-        if eq_mid is not None:
-            eq_mid = NodeCommon("".join(eq_mid))
-
-            if (eq_left is not None
-                and eq_right is not None):
-                # case x=y
-                eq_mid.children = [eq_right, eq_left]
-            elif eq_left is None:
-                # case -y -> 0-y
-                eq_left = NodeCommon("0")
-                eq_mid.children = [eq_right, eq_left]
-            '''
-            elif eq_right is None:
-                # case y- -> y-0
-                # y? -> ?+y
-                eq_right = NodeCommon("0")
-                eq_mid.children = [eq_right, eq_left]
-            '''
-            
-            if eq_left is None and eq_right is None:
-                raise(BaseException("eq_left or eq_right must exist"))
-
-            eq_tree = eq_mid
-        else:
-            # if equation not like U'=sin(U) but
-            # like sin(U)
-            eq_tree = eq_right
         
-        self.net.eq_tree = eq_tree
+        sent_list = [self.net.sent]
+
+        self.parsers[self.parser_current].parse(sent_list)
+
+        self.net.lex_out = self.parsers[self.parser_current].lex_out
+        self.net.cyk_out = self.parsers[self.parser_current].cyk_out
+        self.net.tree_out = self.parsers[self.parser_current].tree_out
+        self.net.net_out = self.parsers[self.parser_current].net_out
+        self.net.json_out = self.parsers[self.parser_current].json_out
+        # set net for replacer:
+        # self.net.replacer.cpp.gen.set_parsed_net(self.net.net_out)
+
+        # print("\nparser.net_out:")
+        # print(self.net.net_out.node)
+
+        # print("\nparser.json_out:")
+        # print(self.net.json_out)
+
+        

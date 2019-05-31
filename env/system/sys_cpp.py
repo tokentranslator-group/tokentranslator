@@ -26,7 +26,7 @@ class sysCpp():
             editor.set_coeffs_indexes(coeffs_to_indexes=coeffs_to_indexes)
 
             editor.set_diff_type(diffType='pure',
-                             diffMethod='common')
+                                 diffMethod='common')
             editor.set_shape(shape=[30, 31])
 
     def set_dim(self, dim):
@@ -85,4 +85,16 @@ class sysCpp():
         for eq in self.net.eqs:
             editor = eq.replacer.cpp.editor
             editor.set_coeffs_indexes(coeffs_to_indexes=coeffs_to_indexes)
+
+    def set_free_var_prefix(self, free_var_prefix=(lambda val, state: "idx"+val.upper())):
+    
+        ''' x |-> params["free_var_prefix"](x, self)
+
+        Input:
+        free_var_prefix = lambda val, state: "idx"+val.upper()
+        '''
+        for eq in self.net.eqs:
+            editor = eq.replacer.cpp.editor
+            editor.set_free_var_prefix(free_var_prefix=free_var_prefix)
+
     # END FOR

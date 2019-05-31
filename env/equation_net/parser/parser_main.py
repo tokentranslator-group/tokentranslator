@@ -24,7 +24,15 @@ class EqParser():
 
         self.grammar_fmw = get_fmw()
         self.dialects_patterns = {}
-        self.dialects_patterns["wolfram"] = eqs
+        
+        if self.net.db is None:
+            print("patterns from tests.dialects.eqs used")
+            self.dialects_patterns["wolfram"] = eqs
+        else:
+            print("patterns from db used")
+            dialect = self.net.db.get_entries_to_list()
+            self.dialects_patterns["wolfram"] = dialect
+
         self.mid_names = {"ops": ['add', 'sub', 'mul', 'div', 'eq', ]}
         self.mid_replacers = {"add": "+", "sub": "-", "mul": "*",
                               "div": "/", "eq": "="}
@@ -34,20 +42,30 @@ class EqParser():
         
         self.parser_current = "wolfram"
 
+    def show_patterns(self):
+
+        '''call ``tokenizer.show_patterns`` method'''
+
+        self.parsers[self.parser_current].show_patterns()
+
     def parse(self):
         
         sent_list = [self.net.sent]
         
         # fix bug with -a, -a+b, -(a+b) |->
-        # 0-a, 0-a+b, 0-(a+b).
+        # (0-a), (0-a+b), (0-(a+b)).
         if sent_list[0][0] == "-":
-            sent_list = ["0"+sent_list[0]]
+            sent_list = ["("+sent_list[0]+")"]
         # fix bug with U=-a, U=-a+b, U=-(a+b)
         if "=-" in sent_list[0]:
-            sent_list = [sent_list[0].replace("=-", "=0-")]
+            sent_list = [sent_list[0].replace("=-", "=(-") + ")"]
+            # sent_list = [sent_list[0].replace("=-", "=0-")]
 
         self.parsers[self.parser_current].parse(sent_list)
         
+        self.net.lex_out = self.parsers[self.parser_current].lex_out
+        self.net.cyk_out = self.parsers[self.parser_current].cyk_out
+        self.net.tree_out = self.parsers[self.parser_current].tree_out
         self.net.net_out = self.parsers[self.parser_current].net_out
         self.net.json_out = self.parsers[self.parser_current].json_out
 
