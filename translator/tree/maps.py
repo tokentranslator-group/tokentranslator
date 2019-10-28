@@ -265,6 +265,9 @@ def set_position(net, nodes_ids, init_position, radius_scale, alpha_scale):
                  lambda idd: 10/len(idd), lambda idd: len(idd)*math.pi/3)
     '''   
 
+    # print("nodes_ids:")
+    # print(nodes_ids)
+
     if len(nodes_ids) == 0:
         return(net)
 
@@ -302,7 +305,9 @@ def set_position(net, nodes_ids, init_position, radius_scale, alpha_scale):
     # sorting siblings with use of relative idd:
     ridds.sort(key=lambda elm: elm[1])
     sni_sorted = [node_id for (node_id, _) in ridds]
-    
+    # print("sni_sorted:")
+    # print(sni_sorted)
+
     # find signum for each node in siblings,
     # relative to mid:
     # (ex: ['s', 0], ['s', 1], ['s', 2] |-> [-1, 0, 1])
@@ -316,14 +321,14 @@ def set_position(net, nodes_ids, init_position, radius_scale, alpha_scale):
                                 else -1 if i < snch_int else 1),
                      range(len(sni_sorted))))
     snis_pos = [node_id for (i, node_id) in enumerate(sni_sorted)
-                if signs[i] >= 0]
+                if signs[i] > 0]
     snis_neg = [node_id for (i, node_id) in enumerate(sni_sorted)
-                if signs[i] <= 0]
+                if signs[i] < 0]
     snis_neg.reverse()
 
     snis_zer = [node_id for (i, node_id) in enumerate(sni_sorted)
                 if signs[i] == 0]
-
+    
     # print("snis_pos:")
     # print(snis_pos)
     # print("snis_neg:")

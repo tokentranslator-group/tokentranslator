@@ -26,6 +26,9 @@ if __name__ == '__main__':
     # test_lex()
     # test_one(11, verbose=True, EqBilder=Equation,
     #          tests=tests_list_main)
+    # test_one(0, tests=tests_list_main,
+    #          EqBilder=Equation, verbose=True)
+
     test_all(EqBilder=Equation, tests=tests_list_main)
     # test_lambda()
     # test_rand()

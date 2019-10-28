@@ -24,6 +24,9 @@ class ParserGeneral():
         self.tokenizer.show_patterns()
 
     def parse(self, sent_list):
+
+        # print("sent_list:")
+        # print(sent_list)
         
         tokenizer = self.tokenizer
         lex_out = self.lex_step(tokenizer, sent_list)
@@ -39,7 +42,13 @@ class ParserGeneral():
             # print(self.lex_out)
 
         cyk_out = self.cyk_step(lex_out)
+        # print("cyk_out:")
+        # print(cyk_out)
+
         tree_out = self.tree_step(cyk_out)
+        # print("tree_out:")
+        # print(tree_out)
+
         net_out = self.net_step(tree_out)
         json_out = self.net_to_json(net_out)
         return(json_out)
