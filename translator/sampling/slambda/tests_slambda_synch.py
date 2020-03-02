@@ -129,7 +129,7 @@ if __name__ == "__main__":
     
     cy_out = ms.map_net_nx_to_cy(D, node_data_converter=ms.convert_node_data_slambda)
     print("from cy:")
-    print(cy_out)
+    # print(cy_out)
 
     # out_json = json_graph.node_link_data(D)
     # print("out_json:")

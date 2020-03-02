@@ -56,7 +56,7 @@ def test_slambda_main(proposal_id=22, init_ventry_id=3):
                                   mid_terms, vars_terms)
     out = sampler.run()
     print("\nsampling json (for cy) result:")
-    print(out)
+    # print(out)
     
     print("\nsampling successors:")
     print(sampler.successes)

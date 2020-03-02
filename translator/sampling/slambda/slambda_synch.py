@@ -177,18 +177,30 @@ class ValTableSynch():
         logger.debug("\n\nsteps:")
         logger.debug(steps)
         logger.debug("\n\nstate0:")
+        logger.debug("len(state0):")
+        logger.debug(len(state0))
+        if len(state0) > 0:
+            logger.debug("first entry in state0:")
+            logger.debug(state0[list(state0.keys())[0]])
+        '''
         for idd in state0:
             logger.debug("\n"+str(idd))
             logger.debug(state0[idd])
-
+        '''
         logger.debug("\n\nstate1:")
+        
         for idd in state1:
             self.add_vnode_to_vesnet(idd, state1[idd])
             self.add_vedge_to_vesnet(state1[idd]["parent_idd"], idd)
 
-            logger.debug("\n"+str(idd))
-            logger.debug(state1[idd])
-
+            # logger.debug("\n"+str(idd))
+            # logger.debug(state1[idd])
+        logger.debug("len(state1):")
+        logger.debug(len(state1))
+        if len(state1) > 0:
+            logger.debug("first entry in state1:")
+            logger.debug(state1[list(state1.keys())[0]])
+        
         if len(successes) > 0:
             self.results = (successes, failures, state1)
             return(self.results)
