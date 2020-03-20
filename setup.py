@@ -39,12 +39,12 @@ if __name__ == "__main__":
         use_scm_version=True,
         # version=get_version(root='.', relative_to=__file__),
 
-        author="tokentranslator-teem",
-        author_email="lab@lab.com",
+        author="tokentranslator-group",
+        author_email="",
         description="token translator framework",
         long_description=long_description,
         long_description_content_type="text/markdown",
-        url="",
+        url="https://github.com/tokentranslator-group/tokentranslator",
         packages=find_packages('.'),
         include_package_data=True,
         
