@@ -316,9 +316,12 @@ def tests_split():
     print("\n======== END FOR: pattern split tests =========")
 
 
-if __name__ == '__main__':
-    
+def run():
     tests_base()
     tests_parts_and_map_ptg()
     tests_split_part()
     tests_split()
+
+
+if __name__ == '__main__':
+    run()

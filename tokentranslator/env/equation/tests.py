@@ -310,6 +310,10 @@ def test_term_cpp_diff(EqBilder=Equation, sent="U'=a*(D[U,{x,2}]+ D[U,{y,2}])"):
     return(eq)
 
 
+def run():
+    test_all()
+
+
 if __name__ == '__main__':
 
     # test_term_cpp_diff(EqBilder=Equation)

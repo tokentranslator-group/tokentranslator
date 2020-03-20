@@ -22,9 +22,9 @@ def test_synch(_id=0):
 
     # take idd of subgroup and abelian terms:
     subgroup_idd = [idd for idd in nodes_idds
-                    if nodes_net.node[idd]["data"]["slambda"]["stname"] == "subgroup"][0]
+                    if nodes_net.nodes[idd]["data"]["slambda"]["stname"] == "subgroup"][0]
     abelian_idd = [idd for idd in nodes_idds
-                   if nodes_net.node[idd]["data"]["slambda"]["stname"] == "abelian"][0]
+                   if nodes_net.nodes[idd]["data"]["slambda"]["stname"] == "abelian"][0]
     print("subgroup_idd:")
     print(subgroup_idd)
     print("abelian_idd:")
@@ -104,8 +104,7 @@ def test_synch(_id=0):
     return(v_synch)
 
 
-if __name__ == "__main__":
-
+def run():
     '''
     ['s', 0, 1, 0] :  H
     ['s', 1, 0, 1, 1] :  G
@@ -134,3 +133,7 @@ if __name__ == "__main__":
     # out_json = json_graph.node_link_data(D)
     # print("out_json:")
     # print(out_json)
+
+
+if __name__ == "__main__":
+    run()

@@ -1,6 +1,7 @@
 import os
 import sys
 import inspect
+'''
 # insert env dir into sys
 # env must contain env folder:
 currentdir = os.path.dirname(os.path
@@ -10,7 +11,7 @@ env_dir = currentdir[:env]
 # print(env_dir)
 if env_dir not in sys.path:
     sys.path.insert(0, env_dir)
-
+'''
 from tokentranslator.env.clause.parser.parser_main import ClParser
 # from tokentranslator.env.equation_net.net.eq_net import NetEditor
 
@@ -84,8 +85,7 @@ class Clause():
         print(self.json_out)
 
 
-if __name__ == "__main__":
-
+def run():
     sent = "abelian(G) \\and subgroup(H, G,) => abelian(H)"
     print("\noriginal:")
     print(sent)
@@ -96,3 +96,7 @@ if __name__ == "__main__":
     print("\nresult:")
     print(eq.show_net_json_original())
 
+
+if __name__ == "__main__":
+    run()
+    

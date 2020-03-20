@@ -251,7 +251,7 @@ def test_change_path():
     print("\ndialect_name changed to cs:")
     dialect_name = "cs"
     agent.change_dialect_db(dialect_name)
-    agent.show_all_entries()    
+    agent.show_all_entries()
     print("\ncurrent dialect path:")
     print(agent.get_path_of_dialect_db(dialect_name))
 
@@ -328,8 +328,7 @@ def test_show_all_entries_user():
     agent.show_all_entries(table_name="user")
 
 
-if __name__ == '__main__':
-
+def run():
     # path = "env/equation_net/data/terms/input/demo_dialect.db"
     # path = "env/clause/data/terms/input/demo_dialect.db"
     dialect_name = "eqs"
@@ -337,8 +336,12 @@ if __name__ == '__main__':
     # test_create_user_table()
     ### test_load()
     ### test_select()
-    ### test_show_all_entries_user()
+    test_show_all_entries_user()
     test_change_path()
 
     ### test_to_list(dialect_name)
     # test_from_list(path, "cs")
+
+
+if __name__ == '__main__':
+    run()

@@ -156,8 +156,8 @@ def test_eqs(use_asserted):
     return(failed)
 
 
-if __name__ == "__main__":
-    
+def run():
+
     # make_tokenizer(cs)
     # faileds = test_cs(True)
     faileds = test_eqs(True)
@@ -166,3 +166,6 @@ if __name__ == "__main__":
         print("\n fail:")
         print(failed)
 
+
+if __name__ == "__main__":
+    run()

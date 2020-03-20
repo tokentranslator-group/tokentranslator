@@ -28,6 +28,10 @@ def test_split():
     print(out)
 
 
-if __name__ == '__main__':
-    
+def run():
     test_split()
+
+
+if __name__ == '__main__':
+    run()
+    

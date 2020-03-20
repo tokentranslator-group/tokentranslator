@@ -509,11 +509,14 @@ def tests_base():
     print("\n======== END FOR: base tests =========")
 
 
-if __name__ == '__main__':
-    
+def run():
     # test_3_2()
     tests_base()
     tests_parts_and_map_ptg()
     tests_split_part()
     tests_split()
     tests_patterns_special()
+
+
+if __name__ == '__main__':
+    run()

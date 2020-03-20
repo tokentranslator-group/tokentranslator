@@ -46,7 +46,8 @@ class BaseDB():
         path = self.load_paths()[dialect_name]
         if not os.path.exists(path):
             print("path %s not exist" % path)
-            path = os.path.join(currentdir.split("gui")[0], path)
+            path = os.path.join(currentdir.split("tokentranslator/gui")[0],
+                                "tokentranslator", path)
             print("trying to use with currentdir. path: " + path)
             if not os.path.exists(path):
                 raise(BaseException("path not exist:" + path))
@@ -93,7 +94,8 @@ class BaseDB():
 
         if not os.path.exists(path):
             # fix notebooks path bug:
-            fixed_path = os.path.join(currentdir.split("gui")[0], path)
+            fixed_path = os.path.join(currentdir.split("tokentranslator/gui")[0],
+                                      "tokentranslator", path)
             path = fixed_path
             # path = os.path.join(config_file_prefix, path)
 
@@ -118,8 +120,8 @@ class BaseDB():
                 config_file.write(data_json)
         except FileNotFoundError:
             # fix notebooks path bug:
-            fixed_path = os.path.join(currentdir.split("gui")[0],
-                                      config_file_name)
+            fixed_path = os.path.join(currentdir.split("tokentranslator/gui")[0],
+                                      "tokentranslator", config_file_name)
             # fixed_path = os.path.join(config_file_prefix, config_file_name)
             with open(fixed_path, 'w') as config_file:
                 config_file.write(data_json)
@@ -149,8 +151,8 @@ class BaseDB():
                 data = json.loads(config_file.read())
         except FileNotFoundError:
             # fix notebooks path bug:
-            fixed_path = os.path.join(currentdir.split("gui")[0],
-                                      config_file_name)
+            fixed_path = os.path.join(currentdir.split("tokentranslator/gui")[0],
+                                      "tokentranslator", config_file_name)
             # fixed_path = os.path.join(config_file_prefix, config_file_name)
             with open(fixed_path) as config_file:
                 data = json.loads(config_file.read())

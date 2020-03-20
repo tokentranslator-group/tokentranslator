@@ -80,10 +80,13 @@ def test_sort(dialect):
     print(sorted_terms_names)
 
 
-if __name__ == '__main__':
-    
+def run():
     # test_sort(eqs)
     test_sort(cs)
     # test_orders()
     # test_make(eqs)
     # test_make(cs)
+
+
+if __name__ == '__main__':
+    run()

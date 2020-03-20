@@ -5,6 +5,7 @@ import sys
 import inspect
 
 # add import's path:
+'''
 currentdir = (os.path
               .dirname(os.path
                        .abspath(inspect.getfile(inspect.currentframe()))))
@@ -13,7 +14,7 @@ env_dir = currentdir[:env]
 # print(env_dir)
 if env_dir not in sys.path:
     sys.path.insert(0, env_dir)
-
+'''
 from tokentranslator.env.system.sys_main import sysNet as System
 from tokentranslator.env.equation_net.equation import Equation as EquationNet
 from tokentranslator.env.equation.equation import Equation
@@ -107,9 +108,13 @@ def test_sinch_sys(EqBilder):
     return(sys_1)
 
 
-if __name__ == '__main__':
-    # test_sys(Equation)
+def run():
+    test_sys(Equation)
     test_sinch_sys(EquationNet)
     test_copy(EquationNet)
     # test_sinch_sys(Equation)
     # test_copy(Equation)
+
+
+if __name__ == '__main__':
+    run()

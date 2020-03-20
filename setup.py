@@ -22,7 +22,7 @@ if __name__ == "__main__":
     print(get_version(root='.', relative_to=__file__))
 
     # for description:
-    with open("readme.txt") as f:
+    with open("README.md") as f:
         long_description = f.read()
     
     # for requirements:
@@ -41,9 +41,9 @@ if __name__ == "__main__":
 
         author="tokentranslator-teem",
         author_email="lab@lab.com",
-        description="token translator",
+        description="token translator framework",
         long_description=long_description,
-        long_description_content_type="text",
+        long_description_content_type="text/markdown",
         url="",
         packages=find_packages('.'),
         include_package_data=True,

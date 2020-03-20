@@ -1,19 +1,67 @@
-parser$ python3 -m env.equation.tests
-parser$ python3 -m env.equation_net.tests
-parser$ python3 -m env.system.tests_sys
-python3 -m translator.grammar.tests_cyk
-python3 -m translator.tree.tests_map
-python3 -m translator.main.test_parser_general
+### Main tokentranslator tests:
 
-# Test sampling:
-parser$ python3 -m translator.sampling.slambda.tree_editor
-parser$ python3 -m translator.sampling.slambda.tests_slambda
-parser$ python3 -m translator.sampling.slambda.tests_slambda_synch
+# new equation translator test:
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.env.equation_net.tests as ts;ts.run()"
 
-# Test model:
-# parser$ ~/anaconda3/bin/python3 -m gui.web.model.model_main
+# old equation translator test (deprecated):
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.env.equation.tests as ts;ts.run()"
 
+# system of equations tests:
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.env.system.tests_sys as ts;ts.run()"
+
+# clauses tests:
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.env.clause.tests as ts;ts.run()"
+
+===================================================
+
+### tokentranslator components tests:
+
+# lex and cyk tests:
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.translator.grammar.tests_cyk as ts;ts.run()"
+# tree and map tests:
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.translator.tree.tests_map as ts;ts.run()"
+
+# parser general test:
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.translator.main.test_parser_general as ts;ts.run()"
+
+=================================
+### tokenizer tests
+
+# main tokenizer  tests:
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.translator.tokenizer.tests.tests_tokenizer_main as ts;ts.run()"
+
+# patterns sorting tests:
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.translator.tokenizer.patterns.patterns_listtests.tests_patterns_list as ts;ts.run()"
+
+# patterns types tests:
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.translator.tokenizer.patterns.patterns_types.tests.tests_pattern_re as ts;ts.run()"
+
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.translator.tokenizer.patterns.patterns_types.tests.tests_pattern_txt as ts;ts.run()"
+
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.translator.tokenizer.patterns.patterns_types.tests.tests_pattern_ex as ts;ts.run()"
+
+=====================================
+
+### Test sampling:
+
+# main sampling tests:
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.translator.sampling.slambda.tests_slambda_main as ts;ts.run()"
+
+# sampling components tests:
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.translator.sampling.slambda.tests_slambda_synch as ts;ts.run()"
+
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.translator.sampling.slambda.tests_tree_editor as ts;ts.run()"
+
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.translator.sampling.slambda.tests_slambda_single as ts;ts.run()"
+
+========================================
+
+### Test model:
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.gui.web.model.model_main as ts;ts.run()"
+
+
+=======================================
 # Run server:
-# parser$ ~/anaconda3/bin/python3 -m gui.web.server.server_main
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.gui.web.server.server_main as sm; sm.run()"
 # lex in "http://localhost:8888/
 # net in "http://localhost:8888/net

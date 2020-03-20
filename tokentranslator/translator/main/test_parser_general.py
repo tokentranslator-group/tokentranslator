@@ -37,17 +37,20 @@ def test(dialect_name, sent_list):
     parser.parse(sent_list)
 
     print("\nparser.net_out:")
-    print(parser.net_out.node)
+    print(parser.net_out.nodes)
 
     print("\nparser.json_out:")
     print(parser.json_out)
         
 
-if __name__ == "__main__":
-    
+def run():
     # sent_list = ["Let(G: group(G) in: abelian(G)=>commutative(G),"
     #              + " commutative(G)=>abelian(G),)"]
     # test("cs", sent_list)
     
     sent_list = ["U'=a+U+U*U*V-(b+1)*U+c*D[U,{x,2}]"]
     test("eqs", sent_list)
+
+
+if __name__ == "__main__":
+    run()

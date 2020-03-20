@@ -33,6 +33,7 @@ logging.basicConfig(level=log_level)
 logger = logging.getLogger('tests_map')
 logger.setLevel(level=log_level)
 
+'''
 # insert env dir into sys
 # env must contain env folder:
 currentdir = os.path.dirname(os.path
@@ -42,7 +43,7 @@ env_dir = currentdir[:env]
 logger.debug(env_dir)
 if env_dir not in sys.path:
     sys.path.insert(0, env_dir)
-
+'''
 
 def make_tokenizer(dialect):
     tokenizer = TokenizerNet()
@@ -179,7 +180,7 @@ def test_one(tokenizer, tests_list, dialect="eqs", _id=0, verbose=False):
     '''
 
 
-if __name__ == '__main__':
+def run():
 
     # test_all_cs()
     # test_all_eqs()
@@ -187,3 +188,7 @@ if __name__ == '__main__':
     tests_list = tests_dict_eqs
     dialect = "eqs"
     test_one(tokenizer, tests_list, dialect=dialect, _id=17, verbose=True)
+
+
+if __name__ == '__main__':
+    run()

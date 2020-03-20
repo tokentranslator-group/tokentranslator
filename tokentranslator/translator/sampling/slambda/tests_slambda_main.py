@@ -64,8 +64,11 @@ def test_slambda_main(proposal_id=22, init_ventry_id=3):
     return(sampler)
 
 
-if __name__ == "__main__":
-
+def run():
     print("target proposal:")
     print("abelian(G) \\and subgroup(H, G,) => abelian(H)")
     test_slambda_main(proposal_id=22, init_ventry_id=4)
+
+
+if __name__ == "__main__":
+    run()

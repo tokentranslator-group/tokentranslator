@@ -43,7 +43,7 @@ class PatternsEditor():
         self.patterns_json = "env/equation_net/data/terms/output/patterns.json"
         # fix notebooks path bug:
         self.patterns_json_hd_fixed = (os.path
-                                       .join(currentdir.split("tokentranslator")[0],
+                                       .join(currentdir.split("tokentranslator/translator")[0],
                                              ("tokentranslator/env/equation_net"
                                               + "/data/terms/output/patterns.json")))
         '''
@@ -53,8 +53,8 @@ class PatternsEditor():
         '''
 
         self.compile_errors_file = (os.path
-                                    .join(currentdir.split("translator")[0],
-                                          ("env/equation_net/data/terms/"
+                                    .join(currentdir.split("tokentranslator/translator")[0],
+                                          ("tokentranslator/env/equation_net/data/terms/"
                                            + "output/compile_log.txt")))
 
         # self.compile_errors_file = "env/equation_net/data/terms/output/compile_log.txt"

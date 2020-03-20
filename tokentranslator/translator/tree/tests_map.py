@@ -145,8 +145,11 @@ def test(dialect, _id, verbose=False):
     return(D)
 
 
-if __name__ == "__main__":
-    
+def run():
     test("cs", 22, verbose=True)
     # test("eqs", 11, verbose=True)
     # test("eqs", 25, verbose=True)
+
+
+if __name__ == "__main__":
+    run()

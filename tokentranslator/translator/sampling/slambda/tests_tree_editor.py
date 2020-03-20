@@ -22,10 +22,10 @@ def test_set_slambda(_id):
     
     # add slambda key for each node in D
     # which name exist in stable:
-    for node_idd in D.node:
+    for node_idd in D.nodes:
         slambda = tree_editor(node_idd)
         if slambda is not None:
-            if D.node[node_idd]["name"] == "br":
+            if D.nodes[node_idd]["name"] == "br":
                 left_node_idd = tree_editor.get_successors(node_idd)[0]
                 slambda_nodes_idds.append(left_node_idd)
             else:
@@ -33,11 +33,14 @@ def test_set_slambda(_id):
     return((D, slambda_nodes_idds))
 
 
-if __name__ == "__main__":
-
+def run():
     # "abelian(G) \\and subgroup(H, G,) => abelian(H)"
     net, nodes = test_set_slambda(22)
     print("\nnodes with slambda values:")
     for idd in nodes:
         print(idd)
     print()
+
+
+if __name__ == "__main__":
+    run()

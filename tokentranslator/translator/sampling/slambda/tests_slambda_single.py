@@ -17,9 +17,9 @@ def test_slambda_single():
 
     # take idd of subgroup and abelian terms:
     subgroup_idd = [idd for idd in nodes
-                    if net.node[idd]["data"]["slambda"]["stname"] == "subgroup"][0]
+                    if net.nodes[idd]["data"]["slambda"]["stname"] == "subgroup"][0]
     abelian_idd = [idd for idd in nodes
-                   if net.node[idd]["data"]["slambda"]["stname"] == "abelian"][0]
+                   if net.nodes[idd]["data"]["slambda"]["stname"] == "abelian"][0]
 
     idds = [("subgroup", subgroup_idd),
             ("abelian", abelian_idd)]
@@ -49,9 +49,9 @@ def test_slambda_single():
          "idd": str(["s"]), "successors_count": 0}]
     
     print("subgroup node:\n")
-    print(net.node[subgroup_idd])
+    print(net.nodes[subgroup_idd])
     print("\nabelian node:\n")
-    print(net.node[abelian_idd])
+    print(net.nodes[abelian_idd])
 
     print("\n========= Tests for each entry in vtable ===========\n")
     for entry in test_vtable:
@@ -62,7 +62,7 @@ def test_slambda_single():
         for (pred_name, pred_idd) in idds:
             print("\n------------for " + pred_name + ": ",
                   pred_idd, "------------")
-            pred_node_data = net.node[pred_idd]["data"]["slambda"]
+            pred_node_data = net.nodes[pred_idd]["data"]["slambda"]
 
             # print node args:
             print("from node:")
@@ -80,10 +80,10 @@ def test_slambda_single():
             print("from vtentry:")
             print(pred_name + "(", str(pred_args), ") = ",
                   pred_out, "\n")
-            # print(net.node[subgroup_idd]["data"]["slambda"])
+            # print(net.nodes[subgroup_idd]["data"]["slambda"])
             # END FOR
 
-            out, msg = sampling_of_single_node(net.node[pred_idd],
+            out, msg = sampling_of_single_node(net.nodes[pred_idd],
                                                entry, stable)
             print("out:")
             print(out)
@@ -97,6 +97,10 @@ def test_slambda_single():
         print(entry, "\n")
 
 
-if __name__ == "__main__":
-
+def run():
     test_slambda_single()
+
+
+if __name__ == "__main__":
+    run()
+

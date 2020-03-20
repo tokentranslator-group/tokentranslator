@@ -59,6 +59,8 @@
 import os
 import sys
 import inspect
+
+'''
 # insert env dir into sys
 # env must contain env folder:
 currentdir = os.path.dirname(os.path
@@ -68,7 +70,7 @@ env_dir = currentdir[:env]
 # print(env_dir)
 if env_dir not in sys.path:
     sys.path.insert(0, env_dir)
-
+'''
 '''
 from math_space.common.env.equation.parser.parser_main import EqParser
 from math_space.common.env.equation.tree.eq_tree import EqTree

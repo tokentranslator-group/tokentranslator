@@ -15,6 +15,7 @@ translated to:
      result[idx + 0]=params[0]*((DXM2 * (source[0][idx + 1 * Block0StrideX * Block0CELLSIZE + 0] - 2.0 * source[0][idx + 0 * Block0StrideX * Block0CELLSIZE + 0] + source[0][idx-1 * Block0StrideX * Block0CELLSIZE + 0]))+(DYM2 * (source[0][idx + 1 * Block0StrideY * Block0CELLSIZE + 0] - 2.0 * source[0][idx + 0 * Block0StrideY * Block0CELLSIZE + 0] + source[0][idx-1 * Block0StrideY * Block0CELLSIZE + 0])))
 
 U'=a*(\\frac{d^2U}{dx^2}+ \\frac{d^2U}{dy^2})+sin(x)+A.transpose().conj()
+
 translated to
    (sympy)
       sympy.diff(U(t), t)=a*(diff(U,x, 2)+diff(U,y, 2))+sympy.sin(x)+A.transpose().conj()
@@ -30,7 +31,7 @@ linux, python3
 ### installation and running
 ```
 source ~/anaconda3/bin/./activate parser_env 
-~/anaconda3/envs/parser_env/bin/./pip install 
+~/anaconda3/envs/parser_env/bin/./pip install tokentranslator
 
 
 # for web interface:
@@ -118,12 +119,12 @@ clause.parser.parse()
 
 # there is currently no dialect to translate clause to, so just check it's generated tree:
 clause.show_cyk_out()
-# this tree will be used for proposal sampling below.
+# this tree will be used for proposal sampling.
 
 # !for equation parser to work don't forget change db back:
 model.change_dialect_db("eqs")
 # even if You is in other session! 
 ```
 
-![alt tag](https://raw.githubusercontent.com/valdecar/Murka/master/screen_overview.png)
+![alt tag](https://raw.githubusercontent.com/valdecar/Murka/master/screen_overview1.png)
 
