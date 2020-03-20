@@ -19,7 +19,9 @@ if __name__ == "__main__":
     print("\nfind_packages:")
     print(find_packages('.'))
     print("\nget_version:")
-    print(get_version(root='.', relative_to=__file__))
+    # local_scheme for pypi:
+    print(get_version(root='.', relative_to=__file__, 
+                      local_scheme="no-local-version"))
 
     # for description:
     with open("README.md") as f:
@@ -31,12 +33,18 @@ if __name__ == "__main__":
     requirements = s_reguirements.split("\n")
     print("\nrequirements:")
     print(requirements)
-
+    
     setup(
         name="tokentranslator",
 
         # use version (only) from setuptools_scm:
-        use_scm_version=True,
+        use_scm_version={
+            "root": ".",
+            "relative_to": __file__,
+            "local_scheme": "no-local-version"
+        },
+
+        # use_scm_version=True,
         # version=get_version(root='.', relative_to=__file__),
 
         author="tokentranslator-group",
@@ -70,3 +78,4 @@ if __name__ == "__main__":
         # setup_requires=[ "setuptools_git >= 0.3", ],
         install_requires=requirements
     )
+

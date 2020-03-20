@@ -1,5 +1,5 @@
 # tokentranslator
-Experemental project. Can be used to create equations or proposals translators by defining replacers for each term (token) with use of gui web interface. Currently contain support for Wolfram->sympy (or cpp), Tex-> sympy (or cpp).
+Experimental project. Can be used to create equations or proposals translators by defining replacers for each term (token) with use of gui web interface. Currently contain support for Wolfram->sympy (or cpp), Tex-> sympy (or cpp).
 Also can extract arguments from equation/proposal. Has experimental sampling proposal generator i.e. for proposal can create subset of it's arguments at which this proposal is true.
 
 ### Examples of translation:
