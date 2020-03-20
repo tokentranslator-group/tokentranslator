@@ -1,6 +1,6 @@
 # tokentranslator
 Experemental project. Can be used to create equations or proposals translators by defining replacers for each term (token) with use of gui web interface. Currently contain support for Wolfram->sympy (or cpp), Tex-> sympy (or cpp).
-Also can extract arguments from equation/proposal. Has experemental sampling proposal generator i.e. for proposal can create subset of it's arguments at which this proposal is true.
+Also can extract arguments from equation/proposal. Has experimental sampling proposal generator i.e. for proposal can create subset of it's arguments at which this proposal is true.
 
 ### Examples of translation:
 #### Tex to sympy (cpp):
@@ -50,7 +50,7 @@ model = TokenizerDB()
 eq = Equation("U'=a*(D[U,{x, 2}]+D[U,{y,2}])", db=model)
 eq.parser.parse()
 
-# set default params (like dimention, bounds type (Dirichlet or Neumann) an so on):
+# set default params (like dimension, bounds type (Dirichlet or Neumann) an so on):
 eq.replacer.cpp.editor.set_default()
 eq.replacer.cpp.make_cpp()
 
