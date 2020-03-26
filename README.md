@@ -139,7 +139,7 @@ net_vars = vms.get_args(str(["s"]), clause.net_out.copy(), vars_extractor)
 print(net_vars)
 ```
 ##### sampling proposals:
-'''
+```
 from tokentranslator.gui.web.model.model_main import TokenizerDB
 from tokentranslator.env.clause.clause_main import Clause
 
@@ -173,9 +173,9 @@ sampler.run()
 
 # so group H found and in this case H = Group('(1,3)(2,4)', '(1,4)(2,3)') (= G but proposal is still holding) 
 # if no results were generated, try run again.
-'''
+```
 ##### sampling equations:
-'''
+```
 >>> e = Equation("f(a*x+b*y)=a*f(x)+b*f(y)")
 >>> e.parser.parse()
 >>> e.sampling.sympy.sampling_vars()
@@ -186,7 +186,7 @@ sampler.run()
 
 sin(0.243*0.570+0.369*0.078)=0.243*sin(0.570)+0.369*sin(0.078)
 
-'''
+```
 ### References:
 ##### Sampling:
 Probabilistic Models of Cognition: https://probmods.org/
@@ -196,10 +196,10 @@ Cocke–Younger–Kasami algorithm: https://en.wikipedia.org/wiki/CYK_algorithm
 
 ### Acknowledgments:
 ##### Used software:
-networkx: https://networkx.github.io/
-cytoscape: https://js.cytoscape.org/
-fancytree: https://github.com/mar10/fancytree
-codemirror: https://codemirror.net/
-tabulator: https://github.com/olifolkerd/tabulator
+networkx: https://networkx.github.io/ <br/>
+cytoscape: https://js.cytoscape.org/ <br/>
+fancytree: https://github.com/mar10/fancytree <br/>
+codemirror: https://codemirror.net/ <br/>
+tabulator: https://github.com/olifolkerd/tabulator <br/>
 
 
