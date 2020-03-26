@@ -125,6 +125,8 @@ def convert_node_data_parser(_id, nx_node_entry):
             label = ""
             cy_node_entry["data"]["nx_data"] = None
         else:
+            print("nx_node_entry")
+            print(nx_node_entry)
             label = ("|" + nx_node_entry["data"]["term_name"]
                      + "|" + nx_node_entry["data"]["lex_value"])
 

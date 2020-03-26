@@ -64,10 +64,19 @@ def test_slambda_main(proposal_id=22, init_ventry_id=3):
     return(sampler)
 
 
+def test_slambda_main1(proposal_id=22, init_ventry_id=3):
+    init_ventry = test_ventries[init_ventry_id]
+    parsed_net = test("cs", proposal_id)
+    sampler = sm.Sampler(parsed_net, init_ventry)
+    sampler.run()
+    return(sampler)
+
+
 def run():
     print("target proposal:")
     print("abelian(G) \\and subgroup(H, G,) => abelian(H)")
-    test_slambda_main(proposal_id=22, init_ventry_id=4)
+    # test_slambda_main(proposal_id=22, init_ventry_id=4)
+    return(test_slambda_main1(proposal_id=11))
 
 
 if __name__ == "__main__":

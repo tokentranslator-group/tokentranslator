@@ -36,9 +36,10 @@ class TreeEditor(NetGen):
     {'slambda':
      {'args': ['H', 'G', "['s', 1, 0, 0]"], 'name': "['s', 1, 0, 0]"}
     
-    You can see from this example that names of some terms is, in fact,
-    it's idd. It is because of some predicates ("subgroup", for example),
-    can appeare several times in one proposal.
+    You can see from this example that names of terms is, in fact,
+    it's idd in tree ("['s', 1, 0, 0]"] means root->right->left->left).
+    It is because of some predicates (like "subgroup", for example),
+    can appeared several times in one proposal.
     
     But all global variables (like "H" and "G" in this example) must be
     same in whole proposal.
@@ -96,7 +97,9 @@ class TreeEditor(NetGen):
             print(node)
             raise(BaseException("in current implementation sampling "
                                 + "only work when args is either pred "
-                                + "or a terms (like X, ...)"))
+                                + "or a terms (like X, ...)"
+                                + "\nor just generator for term '%s' not exist"
+                                % node['data']["term_name"]))
         return(vt_name)
 
     def get_node_br_vtable_name(self, node_br_idd):

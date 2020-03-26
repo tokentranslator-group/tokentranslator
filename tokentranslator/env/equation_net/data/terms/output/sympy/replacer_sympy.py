@@ -90,11 +90,32 @@ class SympyGen(NetGen):
     '''
 
     # FOR flatten
+    def make_extractor(self, extractor):
+        import functools
+
+        # add self to extractor first argument:
+        @functools.wraps(extractor)
+        def extractor_with_replacer(*args):
+            print(args)
+            args_list = list(args)
+            args_list.insert(0, self)
+            print(args_list)
+            return(extractor(*args_list))
+        return(extractor_with_replacer)
+
     def get_extractor(self, key="original"):
         if key == "sympy":
             return(self.extractor_sympy)
+        elif key == "values":
+            return(self.extractor_sympy_val)
         return(NetGen.get_extractor(self, key))
 
+    def extractor_sympy_val(self, node_idd):
+        out = self.get_var_val(node_idd)
+        if out is None:
+            out = self.extractor_sympy(node_idd)
+        return(out)
+        
     def extractor_sympy(self, node_idd):
         
         out = self.get_output_out(node_idd)
@@ -122,6 +143,14 @@ class SympyGen(NetGen):
     # def set_output_lambda(self, node, value):
     #     node.output.sympy.slambda = value
 
+    def get_var_val(self, node_idd):
+        node = self.get_node(node_idd)
+        try:
+            data = node["data"]["vars"]['self']['val']
+        except (KeyError, TypeError):
+            return(None)
+        return(data)
+            
     def get_output_out(self, node_idd):
 
         node = self.get_node(node_idd)

@@ -20,7 +20,8 @@ class SamplingSympy():
         >>> e.parser.parse()
         >>> e.sampling.sympy.sampling_vars()
         >>> # or e.sampling.sympy.sampling_subs()
-        >>> e.show_rand()
+        >>> e.sampling.sympy.show_rand()
+        >>> # or "".join(e.eq_tree.flatten('rand_sympy'))
         sin(0.243*0.570+0.369*0.078)=0.243*sin(0.570)+0.369*sin(0.078)
         '''
         try:

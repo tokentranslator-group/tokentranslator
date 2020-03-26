@@ -224,10 +224,12 @@ class DialectHandlers(Handlers):
 
                     # for vtable:
                     global_self.sampler.set_parsed_net(net_out)
-                    net_out, nodes_idds = global_self.sampler.editor_step()
-                    vtable_skeleton = (global_self.sampler
-                                       .get_vtable_skeleton(nodes_idds))
-                    
+                    try:
+                        net_out, nodes_idds = global_self.sampler.editor_step()
+                        vtable_skeleton = (global_self.sampler
+                                           .get_vtable_skeleton(nodes_idds))
+                    except:
+                        vtable_skeleton = None
                     # lex_out = parser.parsers["hol"].lex_out
                     lex_out = parser.lex_out
                     

@@ -154,7 +154,7 @@ class Equation():
         try:
             eq_tree = self.eq_tree
         except AttributeError:
-            print(("has no eq_tree yiet,"
+            print(("has no eq_tree yet,"
                    + " use parser.parse first"))
             eq_tree = None
 

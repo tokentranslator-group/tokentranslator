@@ -2,6 +2,9 @@ from tokentranslator.translator.sampling.slambda.tree_editor import TreeEditor
 from tokentranslator.translator.sampling.slambda.slambda_synch import ValTableSynch
 import tokentranslator.translator.tree.maps as ms
 
+from tokentranslator.translator.sampling.slambda.data.stable import stable_fixed
+from tokentranslator.translator.sampling.slambda.data.stable import stable
+
 from functools import reduce
 
 
@@ -154,3 +157,35 @@ class ValTableSampling():
         f = lambda acc, x: acc+[x] if (x not in [y for y in acc]) else acc
         table_skeleton = list(reduce(f, table_skeleton, []))
         return(table_skeleton)
+
+
+class Sampler():
+    '''
+    Giving parsed net from proposal and init value entry,
+    will try to produce remained args.
+    '''
+    def __init__(self, parsed_net, init_ventry):
+
+        self.mid_terms = ["clause_where", "clause_for", "clause_into",
+                          "def_0", "in_0",
+                          "if", "if_only", "if_def",
+                          "clause_or", "conj"]
+        self.vars_terms = ["set", "var"]
+        self.parsed_net = parsed_net
+        self.init_ventry = init_ventry
+
+    def run(self):
+
+        self.sampler = ValTableSampling(self.parsed_net.copy(),
+                                        self.init_ventry.copy(),
+                                        stable, stable_fixed,
+                                        self.mid_terms, self.vars_terms)
+
+        out = self.sampler.run()
+        # print("\nsampling json (for cy) result:")
+        # print(out)
+
+        print("\nsampling successors:")
+        print(self.sampler.successes)
+        # TODO: bug with parsed_net
+        return(self.sampler)

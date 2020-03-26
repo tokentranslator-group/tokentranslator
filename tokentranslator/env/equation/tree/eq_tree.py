@@ -9,9 +9,9 @@ logger = logging.getLogger('equation.tree')
 # if using directly uncoment that:
 '''
 # create logger
-log_level = logging.INFO  # logging.DEBUG
+log_level = logging.DEBUG  # logging.DEBUG
 logging.basicConfig(level=log_level)
-logger = logging.getLogger('equation')
+logger = logging.getLogger('equation.tree')
 logger.setLevel(level=log_level)
 '''
 
@@ -62,5 +62,8 @@ class EqTree():
         logger.debug(kernel)
         
         out_kernel = kernel.flatten(key)
+
+        logger.debug("out_kernel")
+        logger.debug(out_kernel)
             
         return("".join(out_kernel))

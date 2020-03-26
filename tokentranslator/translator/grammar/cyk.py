@@ -16,6 +16,7 @@ if P[n,1,1] is true then
   I is member of language
 else
   I is not member of language
+REF: https://en.wikipedia.org/wiki/CYK_algorithm#As_pseudocode
 '''
 # from nodes import Node, copy_node
 from tokentranslator.translator.tree.nodes import NodeR as Node, copy_node

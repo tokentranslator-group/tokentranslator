@@ -182,13 +182,14 @@ def test_one(tokenizer, tests_list, dialect="eqs", _id=0, verbose=False):
 
 def run():
 
-    # test_all_cs()
-    # test_all_eqs()
+    test_all_cs()
+    test_all_eqs()
+    '''
     tokenizer = make_tokenizer(eqs)
     tests_list = tests_dict_eqs
     dialect = "eqs"
     test_one(tokenizer, tests_list, dialect=dialect, _id=17, verbose=True)
-
+    '''
 
 if __name__ == '__main__':
     run()

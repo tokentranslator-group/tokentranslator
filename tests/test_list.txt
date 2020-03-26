@@ -65,3 +65,5 @@
 ~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.gui.web.server.server_main as sm; sm.run()"
 # lex in "http://localhost:8888/
 # net in "http://localhost:8888/net
+
+# see also: tokentranslator/translator/tokenizer/tests/tests_list.py

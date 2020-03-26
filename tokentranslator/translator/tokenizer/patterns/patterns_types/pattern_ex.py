@@ -65,6 +65,7 @@ class PatternEx(PatternBase):
                 
         return(WordDict(part_grammar_name,
                         {"term_name": self.name,
+                         "lex_value": content,
                          "content": content,
                          "lex_template": self.template,
                          "term_type": self.type}))
