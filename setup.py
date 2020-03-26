@@ -1,15 +1,15 @@
-# must be outside hybriddomain
+# must be outside tokentranslator
 import os
 import sys
 
 from setuptools import setup, find_packages, find_namespace_packages
 # from pkg_resources import get_distribution, DistributionNotFound
 
-import setuptools_scm
+# import setuptools_scm
 from setuptools_scm import get_version
-from setuptools_scm.integration import find_files
+# from setuptools_scm.integration import find_files
 
-# hybriddomain
+# tokentranslator
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -18,11 +18,19 @@ if __name__ == "__main__":
     print(this_dir)
     print("\nfind_packages:")
     print(find_packages('.'))
+    
     print("\nget_version:")
-    # local_scheme for pypi:
-    print(get_version(root='.', relative_to=__file__, 
-                      local_scheme="no-local-version"))
-
+    try:
+        # local_scheme for pypi:
+        print(get_version(root='.', relative_to=__file__,
+                          local_scheme="no-local-version"))
+    except:
+        
+        raise(BaseException("setuptools_scm get_version bug,"
+                            + " update to v 3.5.0 needed:"
+                            + " pip uninstall setuptools_scm"
+                            + "\n pip install -Iv setuptools_scm>=3.5.0"))
+        
     # for description:
     with open("README.md") as f:
         long_description = f.read()
@@ -74,7 +82,7 @@ if __name__ == "__main__":
         # setuptools_scm = setuptools_scm.integration:find_files
         # """,
 
-        setup_requires=['setuptools_scm'],
+        setup_requires=['setuptools_scm >= 3.5.0'],
         # setup_requires=[ "setuptools_git >= 0.3", ],
         install_requires=requirements
     )
