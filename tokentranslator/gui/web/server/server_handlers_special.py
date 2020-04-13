@@ -18,9 +18,11 @@ from functools import reduce
 
 class DialectHandlers(Handlers):
 
-    def __init__(self, model):
+    def __init__(self, model, model_signatures):
         
         Handlers.__init__(self, model)
+
+        self.model_signatures = model_signatures
 
         self.create_dialect_handlers()
         # self.create_dialect_login_handlers()
@@ -38,6 +40,7 @@ class DialectHandlers(Handlers):
 
         TableHandler = self.TableHandler
         model = self.model
+        model_signatures = self.model_signatures
         global_self = self
         
         # FOR parsers (for get_parser_data in other handlers besides parser):
@@ -104,10 +107,12 @@ class DialectHandlers(Handlers):
                     
                 return(data)
 
-            def load_table(self):
+            def load_table(self, dialect=None):
 
                 '''Method for get'''
-
+                if dialect is not None:
+                    model.change_dialect_db(dialect)
+            
                 data = model.show_all_entries()
                 return(data)
                 '''
@@ -487,6 +492,147 @@ class DialectHandlers(Handlers):
                 self.write(json.dumps(response))
                 
         self.ReplacerHandler = ReplacerHandler
+
+        class SignaturesHandler(TableHandler):
+
+            def update_action(self, data: dict)->dict:
+
+                '''Method for post'''
+
+                for entry in data:
+                    selected = (model_signatures
+                                .select_pattern(entry["predicate"],
+                                                entry["signature"]))
+                    print("selected:")
+                    print(selected)
+                    if selected.count == 0:
+                        model_signatures.add_pattern(dict([(key, entry[key])
+                                                           for key in entry
+                                                           if key != "id"]))
+                    elif selected.count == 1:
+                        model_signatures.edit_pattern(entry["predicate"],
+                                                      entry["signature"],
+                                                      dict([(key, entry[key])
+                                                            for key in entry
+                                                            if key != "id"]))
+                    else:
+                        raise(BaseException("Too many elements with"
+                                            + " same keys in table"))
+
+                data = model_signatures.show_all_entries()
+
+                # delete entries, not contained in data
+                # for entry in data[]:
+                    
+                return(data)
+
+            def delete_action(self, data: dict)->dict:
+
+                '''Method for post'''
+
+                for entry in data:
+                    model_signatures.del_pattern(entry["predicate"],
+                                                 entry["signature"])
+
+                data = model_signatures.show_all_entries()
+                    
+                return(data)
+
+            def load_table(self, dialect=None):
+
+                '''Method for get'''
+                if dialect is not None:
+                    print("dialect: ", dialect)
+                    model_signatures.change_dialect_db(dialect)
+            
+                data = model_signatures.show_all_entries()
+                
+                return(data)
+                '''
+                return({'table':
+                        [{"id": 0, "ptype:": "Th", "name": "Th_1",
+                          "kernel": "first theorem", "kop": ""},
+                         {"id": 1, "ptype:": "Def", "name": "Def_1",
+                          "kernel": "first def", "kop": ""}]})
+                '''
+
+        self.SignaturesHandler = SignaturesHandler
+
+        class SignaturesCodeHandler(self.BaseHandler):
+
+            # @tornado.web.authenticated
+            def post(self):
+                # data = self.get_argument('proposals', 'No data received')
+                data_body = self.request.body
+                data_json = json.loads(data_body)
+           
+                print("\nFROM ReplacerHandler.post")
+                print("\ndata_json_recived:")
+                print(data_json)
+                
+                # FOR data update:
+                action = data_json["action"]
+                dialect_name = data_json["dialect_name"]
+                                
+                predicate = data_json["predicate"]
+                signature = data_json["signature"]
+
+                if action == "set":
+                    # save new code:
+                    code = data_json["code"]
+                    model_signatures.edit_pattern(predicate, signature,
+                                                  {"code": code})
+
+                    # take it back:
+                    res = model_signatures.select_pattern(predicate, signature)
+                    if res.count > 1:
+                        raise(BaseException("Too many elements with"
+                                            + " same keys in table"))
+                    term_source = res.res[0]['code']
+
+                elif action == "load":
+
+                    res = model_signatures.select_pattern(predicate, signature)
+                    if res.count > 1:
+                        raise(BaseException("Too many elements with"
+                                            + " same keys in table"))
+                    term_source = res.res[0]['code']
+
+                elif action == "remove":
+                    term_source = "must alredy be removed in SignaturesHandler"
+
+                else:
+                    print("no such action: %s" % (action))
+                '''
+                print("aveilable_terms:")
+                aveilable_terms = list(sources.keys())
+                print(list(sources.keys()))
+                available_terms_str = " ".join(aveilable_terms)
+                '''
+                data = {"source": term_source}
+                '''
+                data = {"source": term_source,
+                        "available_terms": available_terms_}
+                '''
+                # END FOR
+
+                # send back new data:
+                # print("\ndata_to_send:")
+                # print(data)
+                response = data  # {"": data_json}
+                self.write(json.dumps(response))
+
+            # @tornado.web.authenticated
+            def get(self):
+                # not used
+
+                print("FROM ReplacerHandler.get")
+
+                data = {}
+                response = data  # {"": data_json}
+                self.write(json.dumps(response))
+                
+        self.SignaturesCodeHandler = SignaturesCodeHandler
 
         class LexTut0Handler(self.BaseHandler):
             # @tornado.web.authenticated

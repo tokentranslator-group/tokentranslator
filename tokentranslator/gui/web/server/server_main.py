@@ -7,6 +7,7 @@ import tornado.web
 import os
 import json
 from tokentranslator.gui.web.model.model_main import TokenizerDB
+from tokentranslator.gui.web.model.model_signatures import SignaturesDB
 from tokentranslator.gui.web.server.server_handlers_special import DialectHandlers
 
 
@@ -56,6 +57,9 @@ def make_app(handlers):
         (r"/api/tables/path", handlers.PathHandler),
         (r"/api/tables/dialect", handlers.DialectTableHandler),
         (r"/api/tables/replacer", handlers.ReplacerHandler),
+        (r"/api/tables/signatures", handlers.SignaturesHandler),
+        (r"/api/tables/signatures_code", handlers.SignaturesCodeHandler),
+        
         (r"/api/tables/user", handlers.UsersTableHandler),
 
         # statics from /client folder
@@ -67,7 +71,10 @@ def run():
     model = TokenizerDB()
     model.load_all_tables()
 
-    handlers = DialectHandlers(model)
+    model_signatures = SignaturesDB()
+    model_signatures.load_all_tables()
+
+    handlers = DialectHandlers(model, model_signatures)
 
     app = make_app(handlers)
     port = 8888

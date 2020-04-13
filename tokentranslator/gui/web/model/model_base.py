@@ -21,9 +21,11 @@ currentdir = os.path.dirname(os.path.realpath(__file__))
 
 class BaseDB():
 
-    def __init__(self, dialect_name):
-
-        self.change_dialect_db(dialect_name)
+    def __init__(self, dialect_name, new=False):
+        self.path = None
+        
+        if not new:
+            self.change_dialect_db(dialect_name)
         
     # FOR paths:
     def change_path_of_dialect_db(self, dialect_name, path):
@@ -41,9 +43,23 @@ class BaseDB():
         
         '''Just load and print path in ``config.json``
         (do not check if it is differ from currently used
-         (for ex: when it was changed manualy))'''
-        
-        path = self.load_paths()[dialect_name]
+         (for ex: when it was changed manualy))
+        If dialect_name not exist in config_file, return None.
+        '''
+
+        try:
+            path = self.load_paths()[dialect_name]
+        except KeyError:
+            # fix notebooks path bug:
+            fixed_path = os.path.join(currentdir.split("tokentranslator/gui")[0],
+                                      "tokentranslator", config_file_name)
+            
+            print("dialect name not exist in config file:")
+            print(" " + fixed_path)
+            print("use save_path to fix it")
+            
+            return(None)
+
         if not os.path.exists(path):
             print("path %s not exist" % path)
             path = os.path.join(currentdir.split("tokentranslator/gui")[0],
@@ -60,6 +76,10 @@ class BaseDB():
         update the curent db.'''
 
         path = self.get_path_of_dialect_db(dialect_name)
+
+        # if db not exist in config_file:
+        if path is None:
+            return()
 
         self.path = path
         
@@ -112,6 +132,13 @@ class BaseDB():
 
         '''Save path by modifying according entry in config.'''
 
+        root = currentdir.split("tokentranslator/gui")[0]
+        root = os.path.join(root, "tokentranslator/")
+        if root in path:
+            path = path.split(root)[-1]
+        else:
+            raise(BaseException("db must been somewhere in"
+                                + " tokentranslator folder or it subfolders"))
         data = self.load_config()
         data[config_path_key][dialect_name] = path
         data_json = json.dumps(data, sort_keys=False, indent=4)
@@ -166,17 +193,35 @@ class BaseDB():
         raise(BaseException("load_all_tables must be implemented"
                             + " in ancestor"))
 
-    def create_db(self, model_tables_gen, users_tables_gen):
+    def create_db(self, tables_gens, dialect_name):
         
         '''Create all tables.
+        load path from dialect_name if self.db not exist yet.
 
         Input:
 
         - ``tables_gen`` -- tables generator that is
         function which get's db and return table with
         all tables classes. (see ``model_tables.py``)'''
-        
-        tables = self.load_tables(model_tables_gen, users_tables_gen)
+    
+        try:
+            self.db
+        except:
+            path = self.load_paths()[dialect_name]
+    
+            if not os.path.exists(path):
+                print("path %s not exist" % path)
+                path = os.path.join(currentdir.split("tokentranslator/gui")[0],
+                                    "tokentranslator", path)
+                print("trying to use with currentdir. path: " + path)
+                '''
+                if not os.path.exists(path):
+                    raise(BaseException("path not exist:" + path))
+                '''
+            self.db = pw.SqliteDatabase(path)
+                
+        tables = self.load_tables(tables_gens)
+       
         self.create_db_tables(tables)
 
     def create_db_tables(self, tables):
@@ -206,10 +251,10 @@ class BaseDB():
             db.create_tables(tables)
         db.close()
         
-    def load_tables(self, model_tables_gen, users_tables_gen):
+    def load_tables(self, tables_gens):
     
-        # self.tables_dict will be used in both
-        # load_model_tables and load_users_tables:
+        # self.tables_dict will be used for all tables
+        # for each table_gne in  tables_gens:
         try:
             self.tables_dict
             # print("tables_dict exist")
@@ -217,14 +262,16 @@ class BaseDB():
             self.tables_dict = {}
             # print("tables_dict not exist")
 
-        model_tables = self.load_model_tables(model_tables_gen)
-        users_tables = self.load_users_tables(users_tables_gen)
+        # model_tables = self.load_model_tables(model_tables_gen)
+        # users_tables = self.load_users_tables(users_tables_gen)
+        tables = sum([self.load_table(gen) for gen in tables_gens], [])
         # Dialect = self.create_dialect_table()
-        tables = users_tables + model_tables
+        # tables = users_tables + model_tables
 
         self.tables = tables
         return(tables)
 
+    '''
     def load_users_tables(self, users_tables_gen):
         
         db = self.db
@@ -235,20 +282,21 @@ class BaseDB():
         # self.users_tables_dict = users_tables_dict
         
         return(users_tables)
+    '''
 
-    def load_model_tables(self, model_tables_gen):
+    def load_table(self, table_gen):
         
         db = self.db
 
-        model_tables_dict = model_tables_gen(db)
-        model_tables = list(model_tables_dict.values())
+        table_dict = table_gen(db)
+        table = list(table_dict.values())
 
-        self.tables_dict.update(model_tables_dict)
+        self.tables_dict.update(table_dict)
         # self.model_tables_dict = model_tables_dict
 
-        return(model_tables)
+        return(table)
 
-    def show_all_entries(self, table_name="dialect", silent=False):
+    def show_all_entries(self, table_name="tokens", silent=False):
 
         if not silent:
             print("\nFROM BaseDB.show_all_entries")
@@ -302,7 +350,8 @@ class BaseDB():
 
     def select_table_entry(self, table,
                            filter_field_name: str,
-                           filter_field_value: str):
+                           filter_field_value: str,
+                           silent=False):
         
         '''
         Select entry if entries ``filter_field_name``
@@ -320,10 +369,24 @@ class BaseDB():
         '''
         print("FROM del_table_entry:")
 
+        '''
+        table.select().where(table.__dict__['predicate'].field=='subgroup')
+        '''
+        res = (table.select()
+               .where(table.__dict__[filter_field_name].field == filter_field_value))
+
+        out = []
+        for q in res:
+            if not silent:
+                print(q.__dict__)
+            out.append(q.__dict__)
+
+        '''
         res = (table.select()
                .filter(**{filter_field_name: filter_field_value})
                .execute())
-        return(res)
+        '''
+        return(out)
         
     def edit_table_entry(self, table,
                          filter_field_name: str,
@@ -357,7 +420,7 @@ class BaseDB():
         print("\nprops:")
         print(props)
         res = (table.update(**props)
-               .filter(**{filter_field_name: filter_field_value})
+               .where(table.__dict__[filter_field_name].field == filter_field_value)
                .execute())
 
         print("\nupdated:")
@@ -393,7 +456,7 @@ class BaseDB():
         print("FROM del_table_entry:")
 
         res = (table.delete()
-               .filter(**{filter_field_name: filter_field_value})
+               .where(table.__dict__[filter_field_name].field == filter_field_value)
                .execute())
 
         print("\ndeleted:")

@@ -110,6 +110,8 @@ class Handlers():
                     data_json = self.update_action(data_json["table"])
                 elif data_json["action"] == "delete":
                     data_json = self.delete_action(data_json["table"])
+                elif data_json["action"] == "load":
+                    data_json = self.load_table(data_json["dialect"])
                 # END FOR
 
                 # send back new data:

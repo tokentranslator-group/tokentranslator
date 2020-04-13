@@ -8,8 +8,8 @@ for task environmant.
 from datetime import date
 
 from tokentranslator.gui.web.model.model_base import BaseDB
-from tokentranslator.gui.web.model.model_tables import create_dialect_table
-from tokentranslator.gui.web.model.model_tables import create_users_table
+from tokentranslator.gui.web.model.model_tables import gen_tokens_table
+from tokentranslator.gui.web.model.model_tables import gen_users_table
 
 
 class TokenizerDB(BaseDB):
@@ -56,13 +56,14 @@ class TokenizerDB(BaseDB):
         ('eq', "Eq(${eqs})Eq",
         ('a',), ('ex',)),
     '''
-    def __init__(self, dialect_name="eqs"):
+    def __init__(self, dialect_name="eqs", new=False):
         
-        BaseDB.__init__(self, dialect_name)
+        BaseDB.__init__(self, dialect_name, new)
 
     def create_dialect_db(self):
-        BaseDB.create_db(self, create_dialect_table,
-                         create_users_table)
+        BaseDB.create_db(self, [gen_tokens_table,
+                                gen_users_table],
+                         "tokens")
 
     def create_users_table(self):
        
@@ -71,8 +72,8 @@ class TokenizerDB(BaseDB):
         except AttributeError:
             self.tables_dict = {}
 
-        users_tables = self.load_users_tables(create_users_table)
-        self.create_db_tables(users_tables)
+        users_table = self.load_table(gen_users_table)
+        self.create_db_tables(users_table)
 
     def create_model_table(self):
 
@@ -81,19 +82,19 @@ class TokenizerDB(BaseDB):
         except AttributeError:
             self.tables_dict = {}
 
-        model_tables = self.load_model_tables(create_dialect_table)
-        self.create_db_tables(model_tables)
+        model_table = self.load_table(gen_tokens_table)
+        self.create_db_tables(model_table)
 
     def load_all_tables(self):
 
-        BaseDB.load_tables(self, create_dialect_table,
-                           create_users_table)
+        BaseDB.load_tables(self, [gen_tokens_table,
+                                  gen_users_table])
 
     def clear_all_entries_dialect(self):
-        self.clear_all_entries(self.tables_dict["dialect"])
+        self.clear_all_entries(self.tables_dict["tokens"])
 
     def set_entries_from_list(self, input_list):
-        table = self.tables_dict["dialect"]
+        table = self.tables_dict["tokens"]
         self.clear_all_entries(table)
     
         for entry in input_list:
@@ -125,7 +126,7 @@ class TokenizerDB(BaseDB):
         '''
         return(out_list)
 
-    def show_all_entries(self, table_name="dialect", silent=False):
+    def show_all_entries(self, table_name="tokens", silent=False):
 
         out = BaseDB.show_all_entries(self, table_name=table_name,
                                       silent=silent)
@@ -134,7 +135,7 @@ class TokenizerDB(BaseDB):
     def fill_dialect_db(self):
         
         db = self.db
-        table = self.tables_dict["dialect"]
+        table = self.tables_dict["tokens"]
 
         db.connect()
 
@@ -162,7 +163,7 @@ class TokenizerDB(BaseDB):
                  "pattern_type": ('txt',)}
         '''
                       
-        table = self.tables_dict["dialect"]
+        table = self.tables_dict["tokens"]
 
         if "created_date" in entry:
             entry.pop("created_date")
@@ -174,16 +175,22 @@ class TokenizerDB(BaseDB):
         Select with term_name.
         (see BaseDB.select_table_entry)
         '''
-        table = self.tables_dict["dialect"]
+        table = self.tables_dict["tokens"]
         res = self.select_table_entry(table, 'term_name', term_name)
-        return(res)
+
+        # for compatibility:
+        class Res():
+            def __init__(self, res):
+                self.res = res
+                self.count = len(res)
+        return(Res(res))
 
     def edit_pattern(self, term_name, props):
         '''
         Edit  properties of pattern's with term_name.
         (see BaseDB.edit_table_entry)
         '''
-        table = self.tables_dict["dialect"]
+        table = self.tables_dict["tokens"]
         if "created_date" in props:
             props.pop("created_date")
 
@@ -195,7 +202,7 @@ class TokenizerDB(BaseDB):
         Delete pattern with term_name.
         (see ``BaseDB.del_table_entry``)
         '''
-        table = self.tables_dict["dialect"]
+        table = self.tables_dict["tokens"]
         self.del_table_entry(table, 'term_name', term_name)
 
 
@@ -335,9 +342,9 @@ def run():
     # test_create()
     # test_create_user_table()
     ### test_load()
-    ### test_select()
-    test_show_all_entries_user()
-    test_change_path()
+    test_select()
+    # test_show_all_entries_user()
+    # test_change_path()
 
     ### test_to_list(dialect_name)
     # test_from_list(path, "cs")

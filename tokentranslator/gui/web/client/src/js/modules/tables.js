@@ -18,7 +18,7 @@ define(["jquery", "modules/ttable"],
     
 		       console.log("file object:");
 		       console.log($("#choice_db"));
-		       console.log(document.getElementById('choice_db'))
+		       console.log(document.getElementById('choice_db'));
 		       // console.log(document.getElementById('choice_db').files[0])
 		       console.log($("#choice_db").data());
 		       console.log($("#choice_db")[0]);
