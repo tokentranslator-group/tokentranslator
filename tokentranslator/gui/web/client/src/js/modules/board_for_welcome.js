@@ -11,7 +11,7 @@ define(["jquery"],
 	   BoardWelcome.prototype.init_board = function(){
 	       var self = this;
 	       var str = ('<div id="welcome_id">'
-			  +'<h4>choice available option </h4>'
+			  +'<h4>choose available option </h4>'
 		       + '</div>');
 
 	       $("#"+self.div_storage_id).html(str);

@@ -3,7 +3,8 @@ from tokentranslator.translator.sampling.slambda.slambda_synch import ValTableSy
 import tokentranslator.translator.tree.maps as ms
 
 from tokentranslator.translator.sampling.slambda.data.stable import stable_fixed
-from tokentranslator.translator.sampling.slambda.data.stable import stable
+# from tokentranslator.translator.sampling.slambda.data.stable import stable
+from tokentranslator.gui.web.model.model_stable import ModelStable
 
 from functools import reduce
 
@@ -88,7 +89,7 @@ class ValTableSampling():
         D = ms.set_max_width(D)
         D = ms.set_position(D, [["['s']"]], {"x": 400, "y": 100},
                             lambda dx, level: 10*level,
-                            lambda w, level: w**2+level)
+                            lambda w, level: (w+20)**2+level)
 
         slambda_converter = ms.convert_node_data_slambda
         net_data = ms.map_net_nx_to_cy(D,
@@ -113,13 +114,17 @@ class ValTableSampling():
     def editor_step(self):
 
         '''add slambda data to parsed net predicates and
-        vars nodes. Return them as well.'''
+        vars nodes. Return them as well.
+
+        slambda_nodes_idds is idd for predicates or names for vars,
+        can be used to init vtable skeleton:
+        self.get_vtable_skeleton(nodes_idds)'''
 
         D = self.parsed_net
 
         tree_editor = TreeEditor()
         tree_editor.set_mid_terms(self.mid_terms)
-        tree_editor.set_stable_names(list(self.stable.keys()))
+        tree_editor.set_stable_names(list(self.stable.get_stable().keys()))
         tree_editor.set_vars_terms(self.vars_terms)
         tree_editor.set_parsed_net(D)
 
@@ -164,28 +169,70 @@ class Sampler():
     Giving parsed net from proposal and init value entry,
     will try to produce remained args.
     '''
-    def __init__(self, parsed_net, init_ventry):
+    def __init__(self):
 
         self.mid_terms = ["clause_where", "clause_for", "clause_into",
                           "def_0", "in_0",
                           "if", "if_only", "if_def",
                           "clause_or", "conj"]
         self.vars_terms = ["set", "var"]
+        self.parsed_net = None
+        self.init_ventry = None
+
+        self.stable = ModelStable()
+        
+        self.gen = ValTableSampling(None, None,
+                                    self.stable, stable_fixed,
+                                    self.mid_terms, self.vars_terms)
+
+    def set_parsed_net(self, parsed_net):
         self.parsed_net = parsed_net
+        self.gen.parsed_net = parsed_net
+
+    def set_init_ventry(self, init_ventry):
         self.init_ventry = init_ventry
 
+    def get_parsed_net(self):
+        if self.gen.parsed_net is not None:
+            return(self.gen.parsed_net)
+        else:
+            return(self.parsed_net)
+
+    def get_vtable_skeleton(self):
+        net_out, nodes_idds = self.editor_step()
+        return(self.gen.get_vtable_skeleton(nodes_idds))
+
+    def get_stable(self):
+        return(self.gen.stable.get_stable())
+
+    def editor_step(self):
+
+        '''fill slambda data for self.gen.parsed_net
+        and skeleton for vtable.'''
+
+        if self.parsed_net is None:
+            raise(BaseException("use sampler.set_parsed_net first"))
+        return(self.gen.editor_step())
+
+    def get_successors(self):
+        return(self.gen.successes)
+
     def run(self):
+        if self.parsed_net is None:
+            raise(BaseException("use sampler.set_parsed_net first"))
+        if self.init_ventry is None:
+            raise(BaseException("use sampler.set_init_ventry first"))
 
-        self.sampler = ValTableSampling(self.parsed_net.copy(),
-                                        self.init_ventry.copy(),
-                                        stable, stable_fixed,
-                                        self.mid_terms, self.vars_terms)
+        self.gen = ValTableSampling(self.parsed_net.copy(),
+                                    self.init_ventry.copy(),
+                                    self.stable, stable_fixed,
+                                    self.mid_terms, self.vars_terms)
 
-        out = self.sampler.run()
+        out = self.gen.run()
         # print("\nsampling json (for cy) result:")
         # print(out)
 
         print("\nsampling successors:")
-        print(self.sampler.successes)
+        print(self.gen.successes)
         # TODO: bug with parsed_net
-        return(self.sampler)
+        return(out)

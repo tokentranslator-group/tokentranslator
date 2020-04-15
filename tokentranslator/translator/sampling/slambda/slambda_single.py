@@ -37,8 +37,9 @@ def sampling_of_single_node(node, ventry, stable):
     will be added as description of cause.'''
 
     node_data = node["data"]["slambda"]
-
-    if node_data["stname"] not in stable:
+    
+    if not stable.has_predicate(node_data["stname"]):
+        # if node_data["stname"] not in stable:
         print("no generator for: ", node_data["stname"])
 
     # if node not exist yet in vtentry,
@@ -101,20 +102,29 @@ def sampling_of_single_node(node, ventry, stable):
 
     # generate new samples with use
     # of sign generators (for target_sign_val):
-    if target_sign not in stable[node_data["stname"]]:
+    if not stable.has_signature(node_data["stname"], target_sign):
+        # if target_sign not in stable[node_data["stname"]]:
         msg = ("no such signature for: " + node_data["stname"]
                + " " + str(target_sign))
         print(msg)
         logger.debug("available signs for node ", node_data["stname"])
-        logger.debug(stable[node_data["stname"]])
+        logger.debug(stable.get_signatures(node_data["stname"]))
+        # logger.debug(stable[node_data["stname"]])
         # ventry["failure_statuses"][node_data["name"]] = msg
         return((None, msg))
     else:
-        target_sign_stdata = stable[node_data["stname"]][target_sign]
+        target_sign_stdata = stable.get_data(node_data["stname"],
+                                             target_sign)
+        # target_sign_stdata = stable[node_data["stname"]][target_sign]
 
+        slambda_locals = {}
+        exec(target_sign_stdata['code'], {}, slambda_locals)
+        gen = slambda_locals[target_sign_stdata['func_name']]
+        '''
         # get generator from:
         # (like groups.sub_X_y_out)
-        gen = eval(sign_module_name+target_sign_stdata["name"])
+        gen = eval(sign_module_name+target_sign_stdata["func_name"])
+        '''
         _type = target_sign_stdata["type"]
         
         if _type == "det":

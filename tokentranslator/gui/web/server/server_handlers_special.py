@@ -10,8 +10,8 @@ from tokentranslator.translator.sampling.vars.vars_extractor import Extractor
 import tokentranslator.translator.sampling.vars.vars_maps as vms
 
 from tokentranslator.translator.sampling.slambda import slambda_main as sm
-from tokentranslator.translator.sampling.slambda.data.stable import stable_fixed
-from tokentranslator.translator.sampling.slambda.data.stable import stable
+# from tokentranslator.translator.sampling.slambda.data.stable import stable_fixed
+# from tokentranslator.translator.sampling.slambda.data.stable import stable
 
 from functools import reduce
 
@@ -56,15 +56,18 @@ class DialectHandlers(Handlers):
         # END FOR
 
         # FOR sampler:
+        '''
         mid_terms = ["clause_where", "clause_for", "clause_into",
                      "def_0", "in_0",
                      "if", "if_only", "if_def",
                      "clause_or", "conj"]
         vars_terms = ["set", "var"]
+        '''
+        self.sampler = sm.Sampler()
 
-        self.sampler = sm.ValTableSampling(None, None,
-                                           stable, stable_fixed,
-                                           mid_terms, vars_terms)
+        # self.sampler = sm.ValTableSampling(None, None,
+        #                                    stable, stable_fixed,
+        #                                    mid_terms, vars_terms)
         # END FOR
 
         class DialectTableHandler(TableHandler):
@@ -229,12 +232,13 @@ class DialectHandlers(Handlers):
 
                     # for vtable:
                     global_self.sampler.set_parsed_net(net_out)
-                    try:
-                        net_out, nodes_idds = global_self.sampler.editor_step()
-                        vtable_skeleton = (global_self.sampler
-                                           .get_vtable_skeleton(nodes_idds))
-                    except:
-                        vtable_skeleton = None
+                    # try:
+                    net_out, nodes_idds = global_self.sampler.editor_step()
+                    vtable_skeleton = (global_self.sampler
+                                       .get_vtable_skeleton())
+                    # except:
+                        
+                    #     vtable_skeleton = None
                     # lex_out = parser.parsers["hol"].lex_out
                     lex_out = parser.lex_out
                     
@@ -328,11 +332,10 @@ class DialectHandlers(Handlers):
                                       [data_json["text"]],
                                       data_json["params"])
                     
-                    stable = global_self.sampler.stable
-                    stable_send = {}
-                    for entry_key in stable:
-                        stable_send[entry_key] = [str(sign)
-                                                  for sign in stable[entry_key]]
+                    stable_send = global_self.sampler.get_stable()
+                    # for entry_key in stable:
+                    #     stable_send[entry_key] = [str(sign)
+                    #                               for sign in stable[entry_key]]
                     data["slambda"]["stable"] = stable_send
                     
                 elif mode == "sampling":
@@ -343,7 +346,7 @@ class DialectHandlers(Handlers):
                     parser = self.parse_cs(global_self.sent_list)
                     net_out = parser.net_out
                     global_self.sampler.set_parsed_net(net_out)
-                    net_out, nodes_idds = global_self.sampler.editor_step()
+                    # net_out, nodes_idds = global_self.sampler.editor_step()
                     # END FOR
 
                     # data = self.run_sampling(data_json[""])
@@ -361,13 +364,13 @@ class DialectHandlers(Handlers):
                     # print(out)
     
                     print("\nsampling successors:")
-                    print(global_self.sampler.successes)
+                    print(global_self.sampler.get_successors())
 
                     data = {}
                     # transform values to str:
                     successors = [dict([(idx, str(successor[idx]))
                                         for idx in successor])
-                                  for successor in global_self.sampler.successes]
+                                  for successor in global_self.sampler.get_successors()]
                     data["successors"] = successors
                     data["vesnet"] = out
                 else:

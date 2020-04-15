@@ -14,8 +14,20 @@ define(['jquery', 'modules/parser_base', 'modules/tnet',
 		Get net step result.
 		*/
  	       var self = this;
-	       self.pbase = new parser_base.ParserBase();
-	       self.net = new tnet.Net();
+
+	       self.dialect = dialect;
+
+	       self.storage_id = "div_scene";
+
+	       self.frame_cy_div_id = "frame_cy";
+	       
+
+	       // name where parser will be drawn:
+	       self.parser_storage_div_id = "parser_div";
+
+
+	       self.pbase = new parser_base.ParserBase(self.parser_storage_div_id, "parser");
+	       self.net = new tnet.Net(self.frame_cy_div_id);
 	       
 	       if(["eqs", "cs"].indexOf(dialect) < 0){
 		   var msg = ('dialect "'+dialect+'" not supported.'
@@ -23,16 +35,20 @@ define(['jquery', 'modules/parser_base', 'modules/tnet',
 		   alert(msg);
 		   throw new Error(msg);
 	       };
-	       self.dialect = dialect;
-
-	       // name where parser will be drawn:
-	       self.parser_storage_id = "parser_div";
 	   };
 
 	   
 	   TParser.prototype.remove = function(){
+	       var self = this;
 	       self.net.remove_net();
-	       $("#"+self.parser_storage_id).remove();
+
+	       $("#frame_scene").remove();
+	       $("#div_buttons").remove();
+	       $("#frame_before_parser").remove();
+	       $("#frame_parser").remove();
+	       $("#"+self.frame_cy_div_id).remove();
+	       $("#frame_after_parser").remove();
+	       // $("#"+self.storage_id).remove();
 	       
 	   };
 
@@ -40,9 +56,11 @@ define(['jquery', 'modules/parser_base', 'modules/tnet',
 	       /*
 		- ``dialect`` -- either "eqs" or "cs"
 		*/
-
+	       
 	       var self = this;
 	       console.log("self out out", self);
+
+	       self.draw();
 
 	       $("#frame_parser").css("top","20px");
 	       // ui-widget ui-widget-content 
@@ -76,10 +94,38 @@ define(['jquery', 'modules/parser_base', 'modules/tnet',
 	       };
 	       // var input_buttons_callbacks = [self.get_button_parse_callback_eqs,
 	       //			      self.get_button_parse_callback_cs];
-	       self.pbase.create_input_field("#"+self.parser_storage_id, "parser",
-					     input_names, input_default_contents,
+	       self.pbase.create_input_field(input_names, input_default_contents,
 					     input_buttons_callbacks);
 	       // END FOR
+	   };
+
+
+	   TParser.prototype.draw = function(){
+	       var self = this;
+
+	       var str = 
+		   `<div id="frame_scene">
+		      <div id="div_parser_scene"></div>
+		   </div>
+
+		   <div id="div_buttons" class="above_net_left">
+	           </div>
+
+		   <div id="frame_before_parser">
+		   </div>
+
+		   <div id="frame_parser" class="above_net_left" top>
+		      <div id="`+self.parser_storage_div_id+`">
+		      </div>
+		   </div>
+
+		   <div id="`+self.frame_cy_div_id+`" ></div>
+		   
+
+		   <div id="frame_after_parser">
+		   </div>`;
+
+	       $("#"+self.storage_id).html(str);
 	   };
 
 

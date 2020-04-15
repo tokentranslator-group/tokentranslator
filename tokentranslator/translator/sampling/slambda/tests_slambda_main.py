@@ -67,7 +67,9 @@ def test_slambda_main(proposal_id=22, init_ventry_id=3):
 def test_slambda_main1(proposal_id=22, init_ventry_id=3):
     init_ventry = test_ventries[init_ventry_id]
     parsed_net = test("cs", proposal_id)
-    sampler = sm.Sampler(parsed_net, init_ventry)
+    sampler = sm.Sampler()
+    sampler.set_parsed_net(parsed_net)
+    sampler.set_init_ventry(init_ventry)
     sampler.run()
     return(sampler)
 

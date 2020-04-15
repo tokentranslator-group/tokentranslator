@@ -15,46 +15,58 @@ from tokentranslator.gui.web.model.model_tables import gen_signatures_table
 class SignaturesDB(BaseDB):
 
     '''
-    db consist from one dialect table,
-    composed from the entries.
+    db for stable.
 
     each entry must be:
-    (term_name, template, grammar_type, pattern_type)
+
+    (predicate, signature, dialect, gen_type,
+     func_name, code, comment, count_of_samples)
+
     where
-       template
-          either re or txt or ex template.
 
-       grammar_type type is list like one of thats:
+       predicate
+          name for predicate generator used to (ex: "subgroup").
+    
+       signature
+          describe  which argument of predicate is known,
+          and which must be generated.
+          (ex: "(True, False, True)" for subgroup(x, Y)
+           arguments which is
+           x(known), Y(unknown),
+            out(known (i.e. expected output
+              of subgroup predicate (True or False for any predicate)))
+          together with predicate collumn must represent a unique key.
 
-          ('br_left', [True, False, False])
-          ('br_right', [True, False, False])
-          ('br_mid', [False, True, False])
-          ('a',)
+       gen_type
+          type either ``rand`` or ``det`` which means random or determent
+          if  ``rand`` ``count_of_samples`` also must be given.
 
-       pattern_type is list like one of thats:
+       func_name
+          name of python function inside ``code`` attribute,
+          which represent signature. Better choice meaningful.
+          (ex: like "sub_x_Y_out" for signature (True, False, True))
+       
+       code
+          python algorithm, described how unknown arguments of signature
+          will be gotten from known one.
+          (ex: for signature (True, False, True) i.e. subgroup(x, Y)
+           it must find group Y such that x is subgroup of Y)
 
-          ('re', [+ order])
-          ('txt', [+ order])
-          ('ex',)
-
-          where order is optional pattern order.
+       count_of_samples
+          if ``gen_type`` is ``rand`` this code is represent count of
+          attempts engine will call this generator function ("sub_x_Y_out")
+          before giving up.
 
     Examples:
 
-        ('let', r"Let(${defs}in:${clauses}",
-        ('br_left', [True, True, False]),
-        ('txt',)
-
-        ('func', r"${{pred}}\(${args}",
-        ('br_left', [True, False, False]),
-        ('re', 6.1))
-
-        # x, xs, normal_form_0
-        ('var', r"(?P<obj>[a-z|_|0-9]+)", ('a'),
-        ('re', 2)),
-
-        ('eq', "Eq(${eqs})Eq",
-        ('a',), ('ex',)),
+        entry = {"predicate": "subgroup",
+                 "signature": r"(True, False, True)",
+                 "dialect": "cpp",
+                 "gen_type": 'rand',
+                 "func_name": "sub_x_Y_out",
+                 "code": 'sub_x_Y_out = lambda: print("hello")',
+                 "comment": 'hello gen',
+                 "count_of_samples": 10}
     '''
     def __init__(self, dialect_name="signatures", new=False):
         
@@ -92,7 +104,7 @@ class SignaturesDB(BaseDB):
         
         '''
         - ``entry`` -- entry dict to be added in db.
-        see descrition above.
+        see descrpition above.
         (see BaseDB.add_table_entry)
 
         Examples:
@@ -114,6 +126,26 @@ class SignaturesDB(BaseDB):
 
         self.add_table_entry(table, entry)
 
+    def get_fields_names(self):
+        return(BaseDB.get_fields_names(self, "signatures"))
+    
+    def select_predicate(self, predicate, silent=False):
+        table = self.tables_dict["signatures"]
+        res = (table.select()
+               .where(table.__dict__['predicate'].field == predicate))
+        out = []
+        for q in res:
+            if not silent:
+                print(q.__dict__['__data__'])
+            out.append(q.__dict__['__data__'])
+
+        # for compatibility:
+        class Res():
+            def __init__(self, res):
+                self.res = res
+                self.count = len(res)
+        return(Res(out))
+        
     def select_pattern(self, predicate, signature, silent=False):
         '''
         Select with term_name.
@@ -291,8 +323,9 @@ def test_load():
     agent = SignaturesDB()
     agent.load_all_tables()
     
-    agent.show_all_entries()
-
+    res = agent.show_all_entries()
+    print("\ntest_load results:")
+    print(res)
     return(agent)
 
 
@@ -302,10 +335,18 @@ def test_select():
 
     agent = test_load()
     res = agent.select_pattern("subgroup", str((True, False, True)))
-    
-    print("\nresults:")
+
+    print("\nfields names:")
+    print(agent.get_fields_names())
+
+    print("\nresults of select_pattern:")
     print(res.res)
 
+    res = agent.select_predicate("subgroup")
+    
+    print("\nresults of select_predicate:")
+    print(res.res)
+    
     return(agent)
 
 
@@ -355,7 +396,8 @@ def test_delete():
     
 def run():
     # test_create()
-    test_select()
+    test_load()
+    # test_select()
     # test_edit()
     # test_delete()
     # test_add()

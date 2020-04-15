@@ -296,6 +296,11 @@ class BaseDB():
 
         return(table)
 
+    def get_fields_names(self, table_name):
+        table = self.tables_dict[table_name]
+        table_field_names = table._meta.sorted_field_names
+        return(table_field_names)
+
     def show_all_entries(self, table_name="tokens", silent=False):
 
         if not silent:
