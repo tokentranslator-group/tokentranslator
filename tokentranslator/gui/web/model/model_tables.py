@@ -1,6 +1,60 @@
 import peewee as pw
 
 
+def gen_examples_parser_cs_table(db):
+    '''Create table for sampler examples.'''
+
+    ModelBase = create_base_model(db)
+
+    class ExamplesParserCs(ModelBase):
+
+        # automatic primary key named 'id'
+        input = pw.TextField(default="")
+        comment = pw.TextField(default="")
+        net = pw.TextField(default="")
+        vars = pw.TextField(default="")
+        created_date = pw.DateTimeField(default=pw.datetime.datetime.now)
+
+    return({"examples_parser_cs": ExamplesParserCs})
+
+
+def gen_examples_parser_eqs_table(db):
+    '''Create table for sampler examples.'''
+
+    ModelBase = create_base_model(db)
+
+    class ExamplesParserEqs(ModelBase):
+
+        # automatic primary key named 'id'
+        input = pw.TextField(default="")
+        comment = pw.TextField(default="")
+        net = pw.TextField(default="")
+        cpp = pw.TextField(default="")
+        sympy = pw.TextField(default="")
+        vars = pw.TextField(default="")
+        created_date = pw.DateTimeField(default=pw.datetime.datetime.now)
+
+    return({"examples_parser_eqs": ExamplesParserEqs})
+
+
+def gen_examples_sampler_table(db):
+    '''Create table for sampler examples.'''
+
+    ModelBase = create_base_model(db)
+
+    class ExamplesSampler(ModelBase):
+
+        # automatic primary key named 'id'
+        input = pw.TextField(default="")
+        comment = pw.TextField(default="")
+        sampler_output = pw.TextField(default="")
+        net = pw.TextField(default="")
+        parser_output = pw.TextField(default="")
+        created_date = pw.DateTimeField(default=pw.datetime.datetime.now)
+
+    return({"examples_sampler": ExamplesSampler})
+
+
 def gen_signatures_table(db):
     '''Create table for signatures.'''
 

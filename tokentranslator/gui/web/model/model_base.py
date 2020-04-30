@@ -130,14 +130,17 @@ class BaseDB():
 
     def save_path(self, dialect_name, path):
 
-        '''Save path by modifying according entry in config.'''
+        '''Save path by modifying according entry in config.
+
+        - ``path`` -- full path to '.db' file'''
 
         root = currentdir.split("tokentranslator/gui")[0]
         root = os.path.join(root, "tokentranslator/")
         if root in path:
             path = path.split(root)[-1]
         else:
-            raise(BaseException("db must been somewhere in"
+            raise(BaseException("path must been absolute"
+                                + " and db must been somewhere in"
                                 + " tokentranslator folder or it subfolders"))
         data = self.load_config()
         data[config_path_key][dialect_name] = path

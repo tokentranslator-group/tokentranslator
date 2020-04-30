@@ -76,7 +76,8 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'fancytree/modules/jq
 				   console.log("db path activated");
 			       }
 			       if (data.node.title=="db"){
-				   
+				   self.net.update("tables_db_eqs");
+
 				   console.log("db activated");
 			       }
 			   }
@@ -101,6 +102,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'fancytree/modules/jq
 				   console.log("db path activated");
 			       }
 			       if (data.node.title=="db"){
+				   self.net.update("tables_db_cs");
 				   
 				   console.log("db activated");
 			       }
@@ -128,7 +130,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'fancytree/modules/jq
 				   console.log("db path activated");
 			       }
 			       if (data.node.title=="db"){
-				   
+				   self.net.update("tables_db_sampler");
 				   console.log("db activated");
 			       }
 			   }

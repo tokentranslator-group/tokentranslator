@@ -1,5 +1,7 @@
-from tokentranslator.translator.sampling.slambda.data.stable import sign_module_name
-import tokentranslator.translator.sampling.slambda.data.gens.algebra.groups as groups
+# from tokentranslator.translator.sampling.slambda.data.stable import sign_module_name
+from tokentranslator.translator.sampling.slambda.data.gens.algebra.groups import subgroups 
+from tokentranslator.translator.sampling.slambda.data.gens.algebra.groups import abelian
+import random
 
 from copy import deepcopy
 
@@ -117,19 +119,63 @@ def sampling_of_single_node(node, ventry, stable):
                                              target_sign)
         # target_sign_stdata = stable[node_data["stname"]][target_sign]
 
+        # exec(target_sign_stdata['code'])
+        # gen = locals()[target_sign_stdata['func_name']]
+
+        slambda_globals = {}
         slambda_locals = {}
-        exec(target_sign_stdata['code'], {}, slambda_locals)
+        
+        exec(target_sign_stdata['code'],
+             slambda_globals, slambda_locals)
+        slambda_globals.update(slambda_locals)
+        
+        '''
+        # secure:
+        exec(target_sign_stdata['code'],
+             {'__builtins__': 
+              {'print': print,
+               'globals': globals,
+               'locals': locals},
+              
+              'subgroups': subgroups,
+              'abelian': abelian,
+              'random': random},
+             slambda_locals)
+        '''
         gen = slambda_locals[target_sign_stdata['func_name']]
         '''
         # get generator from:
         # (like groups.sub_X_y_out)
         gen = eval(sign_module_name+target_sign_stdata["func_name"])
         '''
-        _type = target_sign_stdata["type"]
-        
+        _type = target_sign_stdata["gen_type"]
+        print("slambda_globals:")
+        print(slambda_globals)
+        print("slambda_locals:")
+        print(slambda_locals)
+        # print("locals:")
+        # print(locals())
+        # print("globals:")
+        # print(globals())
         if _type == "det":
+            print("slambda_locals1:")
+            print(slambda_locals)
+
+            tmp_glob = {'__builtins__': None,
+                        'gen': gen,
+                        'target_sign_val': target_sign_val}
+            
+            ### tmp_glob.update(slambda_locals)
+            print("tmp_glob1:")
+            print(tmp_glob)
+
             # if result is determent:
-            res = gen(target_sign_val)
+            # cmd = compile('gen(target_sign_val)', '<string>', 'exec',
+            #               0, 1)
+            res = eval('gen(target_sign_val)',
+                       tmp_glob)
+            # slambda_locals.copy()
+            # res = gen(target_sign_val)
             if res is not None:
                 n_entry = create_new_entry(node_data, target_attrs,
                                            res, ventry)
@@ -149,7 +195,21 @@ def sampling_of_single_node(node, ventry, stable):
             previus_states = []
             N = target_sign_stdata["count_of_samples"]
             for step in range(N):
-                res, previus_states = gen(target_sign_val, previus_states)
+                print("slambda_locals2:")
+                print(slambda_locals)
+                tmp_glob = {'__builtins__': None,
+                            'gen': gen,
+                            'target_sign_val': target_sign_val,
+                            'previus_states': previus_states}
+                ### tmp_glob.update(slambda_locals)
+                print("tmp_glob2:")
+                print(tmp_glob)
+                # cmd = compile('gen(target_sign_val, previus_states)',
+                #               '<string>', 'exec',0 , 1)
+                res, previus_states = eval('gen(target_sign_val, previus_states)',
+                                           tmp_glob)
+                # slambda_locals.copy()
+                # res, previus_states = gen(target_sign_val, previus_states)
                 if previus_states is None:
                     # states empty:
                     break

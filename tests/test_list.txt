@@ -59,6 +59,7 @@ v# parser general test:
 ### Test model:
 ~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.gui.web.model.model_main as ts;ts.run()"
 ~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.gui.web.model.model_signatures as ts;ts.run()"
+~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.gui.web.model.model_examples as ts;ts.run()"
 ~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.gui.web.model.model_stable as ts;ts.run()"
 
 

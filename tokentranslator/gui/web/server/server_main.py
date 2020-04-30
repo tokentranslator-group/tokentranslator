@@ -8,6 +8,8 @@ import os
 import json
 from tokentranslator.gui.web.model.model_main import TokenizerDB
 from tokentranslator.gui.web.model.model_signatures import SignaturesDB
+from tokentranslator.gui.web.model.model_examples import ExamplesDB
+
 from tokentranslator.gui.web.server.server_handlers_special import DialectHandlers
 
 
@@ -60,6 +62,16 @@ def make_app(handlers):
         (r"/api/tables/signatures", handlers.SignaturesHandler),
         (r"/api/tables/signatures_code", handlers.SignaturesCodeHandler),
         
+        (r"/api/tables/examples_db_table", handlers.ExamplesDBTableHandler),
+        # (r"/api/tables/examples_db_sampler_table", handlers.SamplerDBTableHandler),
+        # (r"/api/tables/examples_db_eqs_table", handlers.EqsDBTableHandler),
+        # (r"/api/tables/examples_db_cs_table", handlers.CsDBTableHandler),
+
+        (r"/api/tables/examples_db_editor", handlers.ExamplesDBEditorHandler),
+        # (r"/api/tables/examples_db_sampler_editor", handlers.SamplerDBEditorHandler),
+        # (r"/api/tables/examples_db_eqs_editor", handlers.EqsDBEditorHandler),
+        # (r"/api/tables/examples_db_cs_editor", handlers.CsDBEditorHandler),
+
         (r"/api/tables/user", handlers.UsersTableHandler),
 
         # statics from /client folder
@@ -74,7 +86,9 @@ def run():
     model_signatures = SignaturesDB()
     model_signatures.load_all_tables()
 
-    handlers = DialectHandlers(model, model_signatures)
+    model_examples_sampler = ExamplesDB("examples_sampler")
+
+    handlers = DialectHandlers(model, model_signatures, model_examples_sampler)
 
     app = make_app(handlers)
     port = 8888

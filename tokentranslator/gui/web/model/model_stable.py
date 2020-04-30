@@ -35,6 +35,11 @@ class ModelStable():
             return(False)
 
     def has_signature(self, predicate, signature):
+        print("signature, type signature:")
+        print(signature, type(signature))
+        print("predicate, type predicate:")
+        print(predicate, type(predicate))
+        
         res = self.db.select_pattern(predicate, signature, silent=True)
         if res.count > 0:
             return(True)

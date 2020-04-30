@@ -7,9 +7,11 @@ define(["jquery", "modules/ttable"],
 			       table_handler, editor_handler){
 	       var self = this;
 	       self.div_storage_id = div_storage_id;
-	       if(["eqs", "cs", "signatures"].indexOf(dialect) < 0){
+	       if(["eqs", "cs", "signatures", "examples_sampler",
+		   "examples_parser_eqs", "examples_parser_cs"].indexOf(dialect) < 0){
 		   var msg = ('dialect "'+dialect+'" not supported.'
-			      + ' Supported dialect names is: "eqs", "cs", "signatures"');
+			      + ' Supported dialect names is: "eqs", "cs", "signatures", "examples_db_sampler"'
+			     + '"examples_parser_eqs", "examples_parser_cs"]');
 		   alert(msg);
 		   throw new Error(msg);
 	       };
