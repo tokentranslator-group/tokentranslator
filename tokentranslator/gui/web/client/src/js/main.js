@@ -6,8 +6,30 @@
 requirejs.config({
     baseUrl: 'static/src/js/libs',
     paths: {
-        modules: '../modules'
+        modules: '../modules',
+
+	/* Note the `delayStartupUntil=configured` parameter */
+	// REF: https://github.com/mathjax/MathJax-docs/wiki/Integrating-mathjax-into-x%3A-require.js
+	mathjax: "MathJax/MathJax.js?config=TeX-MML-AM_CHTML&amp;delayStartupUntil=configured",
+
     },
+    shim: {	
+		
+	'MathJax/MathJax': {
+	    exports: "MathJax",
+	    init: function () {
+		MathJax.Hub.Config({
+		    extensions: ["tex2jax.js"],
+		    jax: ["input/TeX","output/HTML-CSS"],
+		    tex2jax: {inlineMath: [["$","$"],["\\(","\\)"]]}
+		});
+
+		MathJax.Hub.Startup.onload();
+		return MathJax;
+	    }
+	}
+    },
+
     packages: [{
 	// name: The name of the package (used for the module name/prefix mapping)
         name: "codemirror",
@@ -50,6 +72,18 @@ requirejs(['jquery', 'jquery-ui-custom/jquery-ui', 'modules/scene',
 						      'api/tables/signatures',
 						      'api/tables/signatures_code'),
 
+		  tables_db_sampler: new tables.Board("div_scene", "examples_sampler",
+						      '/api/tables/examples_db_table',
+						      '/api/tables/examples_db_editor'),
+
+		  tables_db_eqs: new tables.Board("div_scene", "examples_parser_eqs",
+						  '/api/tables/examples_db_table',
+						  '/api/tables/examples_db_editor'),
+
+		  tables_db_cs: new tables.Board("div_scene", "examples_parser_cs",
+						 '/api/tables/examples_db_table',
+						 '/api/tables/examples_db_editor'),
+		  
 		  parser_eqs: new tparser.Parser("eqs"),
 		  parser_cs: new tparser.Parser("cs"),
 		  sampler: new sampler.Sampler()

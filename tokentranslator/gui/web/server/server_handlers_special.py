@@ -18,11 +18,13 @@ from functools import reduce
 
 class DialectHandlers(Handlers):
 
-    def __init__(self, model, model_signatures):
+    def __init__(self, model, model_signatures, model_examples):
         
         Handlers.__init__(self, model)
 
         self.model_signatures = model_signatures
+
+        self.model_examples = model_examples
 
         self.create_dialect_handlers()
         # self.create_dialect_login_handlers()
@@ -41,6 +43,9 @@ class DialectHandlers(Handlers):
         TableHandler = self.TableHandler
         model = self.model
         model_signatures = self.model_signatures
+
+        model_examples = self.model_examples
+
         global_self = self
         
         # FOR parsers (for get_parser_data in other handlers besides parser):
@@ -179,7 +184,7 @@ class DialectHandlers(Handlers):
                 # choice grammar for dialect:
                 if dialect_name == "eqs":
                     
-                    # in case it was chenged:
+                    # in case it was changed:
                     global_self.model.change_dialect_db(dialect_name)
 
                     # parse and save:
@@ -544,6 +549,7 @@ class DialectHandlers(Handlers):
             def load_table(self, dialect=None):
 
                 '''Method for get'''
+
                 if dialect is not None:
                     print("dialect: ", dialect)
                     model_signatures.change_dialect_db(dialect)
@@ -636,6 +642,234 @@ class DialectHandlers(Handlers):
                 self.write(json.dumps(response))
                 
         self.SignaturesCodeHandler = SignaturesCodeHandler
+
+        '''
+        def make_examples_handler():
+            def decorator(hclass):
+                @functools.wraps(hclass)
+                def wrapper(*args):
+                    hclass(*args, table_name)
+                # make callback for button
+                fState.buttons[button_name].on_click(wrapper)
+                return(wrapper)
+            return(decorator)
+            
+        @functools.wraps(ExamplesDBTableHandler)
+        def SamplerExamplesHandler(*args):
+            return(hclass(*args, table_name))
+        '''
+
+        class ExamplesDBTableHandler(TableHandler):
+
+            def update_action(self, data: dict)->dict:
+
+                '''Method for post'''
+                
+                # this must be overridden in ancestors:
+                # model_examples = self.model_examples
+
+                for entry in data:
+                    selected = (model_examples
+                                .select_pattern(entry["key"]))
+                    print("selected:")
+                    print(selected)
+                    if selected.count == 0:
+                        model_examples.add_pattern(dict([(key, entry[key])
+                                                           for key in entry
+                                                           if key != "id"]))
+                    elif selected.count == 1:
+                        model_examples.edit_pattern(entry["key"],
+                                                    dict([(key, entry[key])
+                                                          for key in entry
+                                                          if key != "id"]))
+                    else:
+                        raise(BaseException("Too many elements with"
+                                            + " same keys in table"))
+
+                data = model_examples.show_all_entries()
+
+                # delete entries, not contained in data
+                # for entry in data[]:
+                    
+                return(data)
+
+            def delete_action(self, data: dict)->dict:
+
+                '''Method for post'''
+
+                # this must be overridden in ancestors:
+                # model_examples = self.model_examples
+
+                for entry in data:
+                    model_examples.del_pattern(entry["id"])
+
+                data = model_examples.show_all_entries()
+                    
+                return(data)
+
+            def load_table(self, dialect=None):
+
+                '''Method for get'''
+                # this must be overridden in ancestors:
+                # model_examples = self.model_examples
+
+                if dialect is not None:
+                    print("dialect: ", dialect)
+                    model_examples.change_dialect_db(dialect)
+            
+                data = model_examples.show_all_entries()
+                
+                return(data)
+                '''
+                return({'table':
+                        [{"id": 0, "ptype:": "Th", "name": "Th_1",
+                          "kernel": "first theorem", "kop": ""},
+                         {"id": 1, "ptype:": "Def", "name": "Def_1",
+                          "kernel": "first def", "kop": ""}]})
+                '''
+        self.ExamplesDBTableHandler = ExamplesDBTableHandler
+
+        '''
+        class SamplerDBTableHandler(ExamplesDBTableHandler):
+            def __init__(self, *args):
+                self.model_examples = model_examples_sampler
+                ExamplesDBTableHandler.__init__(self, *args)
+
+        self.SamplerDBTableHandler = SamplerDBTableHandler
+        # self.SamplerDBExamplesTableHandler = TableHandler
+
+        class EqsDBTableHandler(ExamplesDBTableHandler):
+            def __init__(self, *args):
+                self.model_examples = model_examples_eqs
+                ExamplesDBTableHandler.__init__(self, *args)
+
+        self.EqsDBTableHandler = EqsDBTableHandler
+        
+        class CsDBTableHandler(ExamplesDBTableHandler):
+            def __init__(self, *args):
+                self.model_examples = model_examples_cs
+                ExamplesDBTableHandler.__init__(self, *args)
+
+        self.CsDBTableHandler = CsDBTableHandler
+        '''
+        class ExamplesDBEditorHandler(self.BaseHandler):
+
+            # @tornado.web.authenticated
+            def post(self):
+                
+                # this must be overridden in ancestors:
+                # model_examples = self.model_examples
+
+                # data = self.get_argument('proposals', 'No data received')
+                data_body = self.request.body
+                data_json = json.loads(data_body)
+           
+                print("\nFROM ReplacerHandler.post")
+                print("\ndata_json_recived:")
+                print(data_json)
+                print(type(data_json))
+
+                # FOR data update:
+                action = data_json["action"]
+                _id = data_json["id"]
+
+                if action == "save":
+                    
+                    tabs_ids = data_json["tabs_ids"]
+                    tabs_contents = data_json["tabs_contents"]
+                    # content0 = "server save content 0"
+                    entry = dict(zip(tabs_ids, tabs_contents))
+                    # save new code:
+                    # code = data_json["code"]
+                    model_examples.edit_pattern(_id, entry)
+
+                    # take it back:
+                    res = model_examples.select_fields_for_editor(_id)
+                    if res.count > 1:
+                        raise(BaseException("Too many elements with"
+                                            + " same keys in table"))
+                    tabs_ids = list(res.res[0].keys())
+                    tabs_contents = [res.res[0][key] for key in tabs_ids]
+                    
+                    # term_source = res.res[0]['code']
+                    
+                elif action == "load":
+                    
+                    content0 = "server load content 0"
+                
+                    res = model_examples.select_fields_for_editor(_id)
+                    if res.count > 1:
+                        raise(BaseException("Too many elements with"
+                                            + " same keys in table"))
+                    tabs_ids = list(res.res[0].keys())
+                    tabs_contents = [res.res[0][key] for key in tabs_ids]
+                    # term_source = res.res[0]['code']
+                    
+                elif action == "remove":
+                    term_source = "must alredy be removed in SignaturesHandler"
+
+                else:
+                    print("no such action: %s" % (action))
+                '''
+                print("aveilable_terms:")
+                aveilable_terms = list(sources.keys())
+                print(list(sources.keys()))
+                available_terms_str = " ".join(aveilable_terms)
+                '''
+                data = {"tabs_ids": tabs_ids,
+                        "tabs_contents": tabs_contents}
+                
+                '''
+                data = {"tabs_ids": ["server tab 0", "server tab 1"],
+                        "tabs_contents": [content0,
+                                          "server content 1"]}
+                '''
+                '''
+                data = {"source": term_source,
+                        "available_terms": available_terms_}
+                '''
+                # END FOR
+
+                # send back new data:
+                # print("\ndata_to_send:")
+                # print(data)
+                response = data  # {"": data_json}
+                self.write(json.dumps(response))
+
+            # @tornado.web.authenticated
+            def get(self):
+                # not used
+
+                print("FROM ReplacerHandler.get")
+
+                data = {}
+                response = data  # {"": data_json}
+                self.write(json.dumps(response))
+                
+        self.ExamplesDBEditorHandler = ExamplesDBEditorHandler
+        '''
+        class SamplerDBEditorHandler(ExamplesDBEditorHandler):
+            def __init__(self, *args):
+                self.model_examples = model_examples_sampler
+                ExamplesDBEditorHandler.__init__(self, *args)
+
+        self.SamplerDBEditorHandler = SamplerDBEditorHandler
+        # self.SamplerDBExamplesTableHandler = TableHandler
+
+        class EqsDBEditorHandler(ExamplesDBEditorHandler):
+            def __init__(self, *args):
+                self.model_examples = model_examples_eqs
+                ExamplesDBEditorHandler.__init__(self, *args)
+
+        self.EqsDBEditorHandler = EqsDBEditorHandler
+        
+        class CsDBEditorHandler(ExamplesDBEditorHandler):
+            def __init__(self, *args):
+                self.model_examples = model_examples_cs
+                ExamplesDBEditorHandler.__init__(self, *args)
+
+        self.CsDBEditorHandler = CsDBEditorHandler
+        '''
 
         class LexTut0Handler(self.BaseHandler):
             # @tornado.web.authenticated

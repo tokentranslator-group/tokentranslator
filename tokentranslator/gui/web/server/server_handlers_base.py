@@ -138,17 +138,17 @@ class Handlers():
                 
                 return(data)
 
-            def load_table(self):
+            def load_table(self, dialect=None):
 
                 '''Result must dict'''
 
                 print("must be implemented")
 
-                return({'table':
-                        [{"id": 0, "ptype:": "Th", "name": "Th_1",
-                          "kernel": "first theorem", "kop": ""},
-                         {"id": 1, "ptype:": "Def", "name": "Def_1",
-                          "kernel": "first def", "kop": ""}]})
+                return(
+                    [{"id": 0, "ptype:": "Th", "name": "Th_1",
+                      "kernel": "first theorem", "kop": ""},
+                     {"id": 1, "ptype:": "Def", "name": "Def_1",
+                      "kernel": "first def", "kop": ""}])
         self.TableHandler = TableHandler
 
     def create_base_handlers(self):

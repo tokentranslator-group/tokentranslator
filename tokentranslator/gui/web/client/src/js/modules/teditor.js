@@ -89,9 +89,9 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui',
 	   };
 
 
-	   TEditor.prototype.set_default_value = function(){
+	   TEditor.prototype.set_default_value = function(default_value){
 	       var self = this;
-	       self.editor.setOption("value", "# click at row to see replacer source\n");
+	       self.editor.setOption("value", default_value);
 	   };
 
 

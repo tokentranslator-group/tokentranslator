@@ -4,8 +4,8 @@ console.log("log ttable.js");
 //['jquery', 'jquery-ui-custom/jquery-ui'],
 //
 define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.min',
-	"modules/teditor", "modules/editor_signatures"],
-       function(require, $, ui, tabulator, teditor, seditor){
+	"modules/teditor", "modules/editor_signatures", "modules/editor_tabs"],
+       function(require, $, ui, tabulator, teditor, seditor, tabseditor){
 
 	   $ = require('jquery');
 	   jquery_ui = require('jquery-ui-custom/jquery-ui');
@@ -32,11 +32,20 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 		   // signature
 
 	       }else{
-		   self.editor = new teditor.TEditor("div_replacer_storage",
-						     editor_handler);
-		   self.keys = {0: "term_name", 1: "grammar_type"};
-		   // term_name;
-		   // grammar_type;
+		   if(["examples_sampler", "examples_parser_eqs",
+		       "examples_parser_cs"].indexOf(self.dialect) >= 0){
+		       self.editor = new tabseditor.TabsEditor("div_replacer_storage",
+							       editor_handler);
+		       self.keys = {0: "id", 1: "id"};
+		       self.editor.set_table_name(self.dialect);
+		       
+		   }else{
+		       self.editor = new teditor.TEditor("div_replacer_storage",
+							 editor_handler);
+		       self.keys = {0: "term_name", 1: "grammar_type"};
+		       // term_name;
+		       // grammar_type;
+		   }
 	       }
 
 	       // self.editor = [];
@@ -112,6 +121,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 			  + '<input id="add" type="button" value="Добавить">'
 			  + '<input id="delete" type="button" value="Удалить">'
 			  + '<input id="save" type="button" value="Сохранить">'
+			  + '<input id="cancel" type="button" value="Отменить">'
 			  + '</div>'
 			  + '<div id="div_table_add"></div>'
 			  + '<div id="div_table_log"></div>'
@@ -128,6 +138,38 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 
 	   Table.prototype.apply_controls = function(){
 	       var self = this;
+
+	       // FOR cancel button:
+	       $("#cancel").on("click", function(){
+	
+		   succ = function (jsonResponse) {
+		       
+		       // rewrite data from server
+		       // clear self.data_add_storage
+		       
+		       var objresponse = JSON.parse(jsonResponse);
+		       data = objresponse['table'];
+		       console.log("\ndata");
+		       console.log(data);
+		       
+		       // copy data:
+		       var data_local = data.slice();
+		       
+		       // update table from response:
+		       $("#div_table").tabulator("setData", data_local);
+		       
+		       // clear data_add_storage:
+		       self.data_add_storage = [];
+		   }
+		   // data_to_send has not be empty:
+		   var data_to_send = ["tmp"];
+		   self.send_data_to_server(data_to_send, succ, "load");
+	       
+		   var msg = "changes cancelled";
+		   alert(msg);
+		   console.log(msg);
+	       });
+	       // END FOR
 
 	       // FOR add button:
 	       $("#add").on("click", function(){
@@ -466,6 +508,30 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 			   data: data_local,
 			   columns: columns_local,
 			   index: self.table_index,
+			   rowContextMenu:[
+			       {
+				   label: "hello",
+				   action: function(e, row){
+				       console.log(row);
+				   }
+			       }
+			   ],
+			   cellEdited: function(cell){
+			       console.log("cellEdited");
+			       console.log(cell);
+			       console.log("cellEdited.row");
+			       console.log(cell.cell.row.data);
+			       
+			       self.data_add_storage.push(cell.cell.row.data);
+			   },
+			   dataEdited: function(data){
+			       console.log("dataEdited:");
+			       console.log(data);
+			   },
+			   rowUpdated: function(row){
+			       console.log("rowUpdated:");
+			       console.log(row);
+			   },
 			   rowClick:function(e, row){
 			       self.s_index = row.getIndex();
 			       console.log("from rowClick:");

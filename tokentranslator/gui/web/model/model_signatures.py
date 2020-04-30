@@ -2,7 +2,7 @@
 It contain methods that cannot be generalised, they are specific
 for task environmant.
 '''
-# parser$ ~/anaconda3/bin/python3 -m gui.web.model.model_main
+# ~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.gui.web.model.model_signatures as ts;ts.run()"
 
 # import peewee as pw
 from datetime import date
@@ -158,7 +158,7 @@ class SignaturesDB(BaseDB):
         '''
         table.select().where(table.__dict__['predicate'].field=='subgroup')
         '''
-        
+        signature = str(signature)
         res = (table.select()
                .where(table.__dict__['predicate'].field == predicate)
                .where(table.__dict__['signature'].field == signature))
@@ -214,6 +214,8 @@ class SignaturesDB(BaseDB):
          .where(table.__dict__['predicate'].field=='subgroup').execute())
         '''
         table = self.tables_dict['signatures']
+        signature = str(signature)
+
         res = (table.update(**props)
                .where(table.__dict__['predicate'].field == predicate)
                .where(table.__dict__['signature'].field == signature)
@@ -242,7 +244,7 @@ class SignaturesDB(BaseDB):
         print("FROM: SignaturesDB.del_pattern")
 
         table = self.tables_dict["signatures"]
-
+        signature = str(signature)
         res = (table.delete()
                .where(table.__dict__['predicate'].field == predicate)
                .where(table.__dict__['signature'].field == signature)
@@ -396,8 +398,8 @@ def test_delete():
     
 def run():
     # test_create()
-    test_load()
-    # test_select()
+    # test_load()
+    test_select()
     # test_edit()
     # test_delete()
     # test_add()
