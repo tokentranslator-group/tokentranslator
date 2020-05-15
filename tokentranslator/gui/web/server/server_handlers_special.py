@@ -20,11 +20,7 @@ class DialectHandlers(Handlers):
 
     def __init__(self, model, model_signatures, model_examples):
         
-        Handlers.__init__(self, model)
-
-        self.model_signatures = model_signatures
-
-        self.model_examples = model_examples
+        Handlers.__init__(self, model, model_signatures, model_examples)
 
         self.create_dialect_handlers()
         # self.create_dialect_login_handlers()
@@ -154,6 +150,10 @@ class DialectHandlers(Handlers):
 
                 data = self.parse(data_json["dialect"], [data_json["text"]],
                                   data_json["params"])
+        
+                # for save to examples_db:
+                # data["text"] = data_json["text"]
+
                 print("\ndata_to_send:")
                 print(data)
 
@@ -336,7 +336,7 @@ class DialectHandlers(Handlers):
                     data = self.parse(data_json["dialect"],
                                       [data_json["text"]],
                                       data_json["params"])
-                    
+                
                     stable_send = global_self.sampler.get_stable()
                     # for entry_key in stable:
                     #     stable_send[entry_key] = [str(sign)
@@ -372,6 +372,7 @@ class DialectHandlers(Handlers):
                     print(global_self.sampler.get_successors())
 
                     data = {}
+
                     # transform values to str:
                     successors = [dict([(idx, str(successor[idx]))
                                         for idx in successor])
@@ -385,6 +386,10 @@ class DialectHandlers(Handlers):
                 # send back new data:
                 # print("\ndata_to_send:")
                 # print(data)
+
+                # for save to examples_db:
+                # data["text"] = data_json["text"]
+
                 response = data  # {"": data_json}
                 self.write(json.dumps(response))
 
@@ -670,15 +675,15 @@ class DialectHandlers(Handlers):
 
                 for entry in data:
                     selected = (model_examples
-                                .select_pattern(entry["key"]))
+                                .select_pattern(entry["id"]))
                     print("selected:")
                     print(selected)
                     if selected.count == 0:
                         model_examples.add_pattern(dict([(key, entry[key])
-                                                           for key in entry
-                                                           if key != "id"]))
+                                                         for key in entry
+                                                         if key != "id"]))
                     elif selected.count == 1:
-                        model_examples.edit_pattern(entry["key"],
+                        model_examples.edit_pattern(entry["id"],
                                                     dict([(key, entry[key])
                                                           for key in entry
                                                           if key != "id"]))

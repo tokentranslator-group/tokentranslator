@@ -22,9 +22,18 @@ define(['jquery', 'modules/parser_base', 'modules/tnet',
 	       // name where parser will be drawn:
 	       self.parser_storage_div_id = "parser_div";
 	       
-	       self.pbase = new parser_base.ParserBase(self.parser_storage_div_id, "sampler");
+	       self.pbase = new parser_base.ParserBase(self, self.parser_storage_div_id, "sampler");
 	       self.net = new tnet.Net(self.frame_cy_div_id);
 
+	       // for save entry for table
+	       self.entry = {};
+
+	   };
+
+
+	   Sampler.prototype.set_default_input = function(value){
+	       var self = this;
+	       self.default_input = value;
 	   };
 
 	
@@ -93,7 +102,8 @@ define(['jquery', 'modules/parser_base', 'modules/tnet',
 	       // FOR input tabs:
 
 	       var input_names = ["cs_0"];
-	       var input_default_contents = ["abelian(G) \\and subgroup(H, G,) => abelian(H)"];
+	       var default_input = self.default_input || "abelian(G) \\and subgroup(H, G,) => abelian(H)"
+	       var input_default_contents = [default_input];
 	      
 	       var input_buttons_callbacks = [];
 	       
@@ -101,16 +111,46 @@ define(['jquery', 'modules/parser_base', 'modules/tnet',
 	       input_buttons_callbacks.push(self.get_button_sampling_callback_cs.bind(self));
 	       
 	       self.pbase.create_input_field(input_names, input_default_contents,
-					     input_buttons_callbacks);
+					     input_buttons_callbacks, self.save_entry.bind(self));
 	       console.log("pbase.create_input_field complited");
 	       // END FOR
+n	   };
+
+
+	   Sampler.prototype.save_entry = function(){
+
+	       /*Save entry for table.
+		TODO: unite with parser_base/ttabs.*/
+
+	       var self = this;
+	       console.log("save_entry");
+	       console.log("self:");
+	       console.log(self);
+	       if (!("input" in self.entry & "sampler_output" in self.entry)){
+		   var msg = ('entry["input"] is undefined.'
+			      + '\n use run first');
+		   alert(msg);
+		   throw new Error(msg);
+	       };
+	       
+	       console.log("self.entry:");
+	       console.log(self.entry);
+
+	       console.log("self.net.boards:");
+	       console.log(self.net.boards["tables_db_eqs"]);
+
+	       self.net.boards["tables_db_sampler"].save_entry(self.entry);
+
+	       self.entry = {}
 	   };
+
 	
 	   Sampler.prototype.get_button_sampling_callback_cs = function(to_parse_div_id){
 	       var self = this;
 	       return(function(event){
 		   var text = $(to_parse_div_id).text();
 		   var params = {};   
+
 		   // self.run("cs", text, params);
 		   self.parse("cs", text, params);
 		   // self.parse("eqs", text, params);
@@ -156,6 +196,14 @@ define(['jquery', 'modules/parser_base', 'modules/tnet',
 			       // $("#lex_out_div").text("done");
 			       // self.net.create_net(data_net);
 
+			       // FOR save entry for table:
+			       // FOR save entry for table:
+			       // "input" here because it used as identifier
+			       // and must be defined last:
+			       self.entry["input"] = text;
+			       self.entry["net"] = JSON.stringify(objresponse['net']);
+			       // END FOR
+
 			       // FOR create tabs:
 			       var board_str =
 				   ('<div id="sampling_board">');
@@ -173,7 +221,12 @@ define(['jquery', 'modules/parser_base', 'modules/tnet',
 			   
 			   error: function (data) {
 			       console.log("error to send");
-			       console.log(data);
+			       console.log(data.responseText);
+
+			       var msg = ("parse error:\n\n responseText: \n"
+					  + data.responseText);
+			       alert(msg);
+			       throw new Error(msg);
 			   }
 		       });
 	       }
@@ -312,6 +365,14 @@ define(['jquery', 'modules/parser_base', 'modules/tnet',
 			       // FOR changing vtable according to sampling result:		
 			       var names = self.get_vtable_names();
 			       var successors = data_slambda["successors"];
+			       
+			       // FOR save entry for table:
+			       // "input" here because it used as identifier
+			       // and must be defined last:
+			       // self.entry["input"] = objresponse["text"];
+			       self.entry["sampler_output"] = JSON.stringify(successors);
+			       // END FOR
+
 			       var net = data_slambda["vesnet"];
 			       self.net.create_net(net);
 

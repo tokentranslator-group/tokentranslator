@@ -52,8 +52,12 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui',
 	       self.editor = editor;
 	   };
 
-	   TEditor.prototype.on_button_click = function(term_name, brackets){
+	   TEditor.prototype.on_button_click = function(keys, row_data){
+	       
 	       var self = this;
+
+	       var term_name = row_data[keys[0]];
+	       var brackets = row_data[keys[1]];
 
 	       // FOR get value:
 	       self.editor.save();
@@ -95,8 +99,10 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui',
 	   };
 
 
-	   TEditor.prototype.load_term = function(term_name, brackets){
+	   TEditor.prototype.load_term = function(keys, row_data){
 	       var self = this;
+	       var term_name = row_data[keys[0]];
+	       var brackets = row_data[keys[1]];
 
 	       var to_send = JSON.stringify({
 		   action: "load",
@@ -111,8 +117,11 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui',
 	       self.send_data_to_server(to_send, " no such term "+term_name);
 	   };
 
-	   TEditor.prototype.remove_term = function(term_name, brackets){
+	   TEditor.prototype.remove_term = function(keys, row_data){
 	       var self = this;
+	       var term_name = row_data[keys[0]];
+	       var brackets = row_data[keys[1]];
+
 
 	       var to_send = JSON.stringify({
 		   action: "remove",

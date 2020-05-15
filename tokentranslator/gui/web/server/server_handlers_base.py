@@ -7,9 +7,11 @@ import json
 
 class Handlers():
 
-    def __init__(self, model):
+    def __init__(self, model, model_signatures, model_examples):
 
         self.model = model
+        self.model_examples = model_examples
+        self.model_signatures = model_signatures
         self.create_base_handlers()
         self.create_path_handler()
         self.create_table_handler()
@@ -19,6 +21,9 @@ class Handlers():
 
         BaseHandler = self.BaseHandler
         model = self.model
+        model_signatures = self.model_signatures
+        model_examples = self.model_examples
+        examples_db = model_examples.supported_tables_names
         global_self = self
 
         class PathHandler(BaseHandler):
@@ -31,10 +36,38 @@ class Handlers():
                 print("FROM PathHandler.get")
                 path_eqs = model.get_path_of_dialect_db("eqs")
                 path_cs = model.get_path_of_dialect_db("cs")
+                path_signs = model_signatures.get_path_of_dialect_db("signatures")
+                path_exs_s = (model_examples
+                              .get_path_of_dialect_db(
+                                  "examples_sampler"))
+                path_exs_eqs = (model_examples
+                                .get_path_of_dialect_db(
+                                    "examples_parser_eqs"))
+                path_exs_cs = (model_examples
+                               .get_path_of_dialect_db(
+                                   "examples_parser_cs"))
                 listdir_eqs = os.listdir(os.path.dirname(path_eqs))
                 listdir_cs = os.listdir(os.path.dirname(path_cs))
-                response = {"eqs": {"path": path_eqs, "listdir": listdir_eqs},
-                            "cs": {"path": path_cs, "listdir": listdir_cs}}
+                listdir_signs = os.listdir(os.path.dirname(path_signs))
+                listdir_exs_s = os.listdir(os.path.dirname(path_exs_s))
+                listdir_exs_eqs = os.listdir(os.path.dirname(path_exs_eqs))
+                listdir_exs_cs = os.listdir(os.path.dirname(path_exs_cs))
+
+                response = {
+                    "eqs": {"path": path_eqs, "listdir": listdir_eqs},
+                    "cs": {"path": path_cs, "listdir": listdir_cs},
+                    
+                    "signatures":
+                    {"path": path_signs, "listdir": listdir_signs},
+                    
+                    "examples_sampler":
+                    {"path": path_exs_s, "listdir": listdir_exs_s},
+                          
+                    "examples_parser_eqs":
+                    {"path": path_exs_eqs, "listdir": listdir_exs_eqs},
+                    
+                    "examples_parser_cs":
+                    {"path": path_exs_cs, "listdir": listdir_exs_cs}}
                 print(response)
 
                 self.write(json.dumps(response))
@@ -51,16 +84,26 @@ class Handlers():
                 print("FROM PathHandler.post")
                 print(data_json)
 
+                if data_json["dialect_name"] in examples_db:
+                    lmodel = model_examples
+                elif(data_json["dialect_name"] == "signatures"):
+                    lmodel = model_signatures
+                elif(data_json["dialect_name"] in ["eqs", "cs"]):
+                    lmodel = model
+                else:
+                    raise(BaseException("PathHandler.post:dialect"
+                                        + (" %s not supported"
+                                           % data_json["dialect_name"])))
                 # FOR data update:
                 # TODO: set ``self.path_cs``, ``self.path_eqs``
                 # with use of dialect key from ``data_json``?
                 if "file_name" in data_json:
                     dirname = (os.path
-                               .dirname(model
+                               .dirname(lmodel
                                         .get_path_of_dialect_db(data_json["dialect_name"])))
                     path = os.path.join(dirname, data_json["file_name"])
-                    model.change_path_of_dialect_db(data_json["dialect_name"],
-                                                    path)
+                    lmodel.change_path_of_dialect_db(data_json["dialect_name"],
+                                                     path)
 
                     # show patterns:
                     global_self.get_parser_data(data_json["dialect_name"])

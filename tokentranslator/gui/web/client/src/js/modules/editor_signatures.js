@@ -15,8 +15,10 @@ define(['jquery', 'modules/teditor'],
 				{value: SEditor, enumerable: false, writable:true});
 
 	   
-	   SEditor.prototype.on_button_click = function(predicate, signature){
+	   SEditor.prototype.on_button_click = function(keys, row_data){
 	       var self = this;
+	       var predicate = row_data[keys[0]];
+	       var signature = row_data[keys[1]];
 
 	       // FOR get value:
 	       self.editor.save();
@@ -48,8 +50,10 @@ define(['jquery', 'modules/teditor'],
 	   };
 
 
-	   SEditor.prototype.load_term = function(predicate, signature){
+	   SEditor.prototype.load_term = function(keys, row_data){
 	       var self = this;
+	       var predicate = row_data[keys[0]];
+	       var signature = row_data[keys[1]];
 
 	       var to_send = JSON.stringify({
 		   action: "load",
@@ -64,8 +68,10 @@ define(['jquery', 'modules/teditor'],
 	       self.send_data_to_server(to_send, " no such term "+"("+predicate+", "+signature+")");
 	   };
 
-	   SEditor.prototype.remove_term = function(predicate, signature){
+	   SEditor.prototype.remove_term = function(keys, row_data){
 	       var self = this;
+	       var predicate = row_data[keys[0]];
+	       var signature = row_data[keys[1]];
 
 	       var to_send = JSON.stringify({
 		   action: "remove",

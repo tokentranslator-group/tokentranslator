@@ -12,40 +12,76 @@ define(['jquery', 'ttabs'],
 	       this.tabs = new ttabs.Tabs({
 		   div_id: div_storage_id,
 		   subdiv_id_name: "dbtabs",
-		   buttons_name: "save",
 		   header: "selected entry data:",
+
 		   tabs_ids: ["parser", "out"],
 		   tabs_contents: ["2+2", "4"],
-		   tabs_buttons_callback: function(tab_id, tab_content_text_id){
-		       return(function(event){
-			   console.log("clicked at element:");
-			   console.log(tab_id);
-			   var text = $("#"+tab_content_text_id).text();
-			   console.log("default button clicked:");
-			   console.log(text);
-			   console.log(tab_content_text_id);
-			   var to_send = {
-			       action: "save",
-			       id: self.key,
-			       tabs_ids: self.tabs.data["tabs_ids"],
-			       tabs_contents: self.tabs.data["tabs_contents"]
-			   };
 
-			   console.log("\n sending (from TabsEdiotr.load_term)");
-			   console.log(to_send);
-			   
-			   var succ = function(data){
-			       self.tabs.load(data);
-			   };
-	       
-			   // get replacer data from server:
-			   self.send_data(to_send, succ);	       
+		   buttons_names: ["save", "refresh"],
+		   tabs_buttons_callbacks: 
+		   [
+		       function(tab_id, tab_content_text_id){
+			   return(function(event){
+			       console.log("clicked at first button");
+			       console.log("clicked at element:");
+			       console.log(tab_id);
+			       var text = $("#"+tab_content_text_id).text();
+			       console.log("default button clicked:");
+			       console.log(text);
+			       console.log(tab_content_text_id);
+			       var to_send = {
+				   action: "save",
+				   id: self.key,
+				   tabs_ids: self.tabs.data["tabs_ids"],
+				   tabs_contents: self.tabs.data["tabs_contents"]
+			       };
 
-			   /*
-			    // var math = document.getElementById(to_parse_div_id);
-			    MathJax.Hub.Queue(["Typeset", MathJax.Hub, to_parse_div_id]);
-			    */
-		       });}
+			       console.log("\n sending (from save button callback):");
+			       console.log(to_send);
+			       
+			       var succ = function(data){
+				   self.tabs.load(data);
+			       };
+			       
+			       // get replacer data from server:
+			       self.send_data(to_send, succ);	       
+
+			       /*
+				// var math = document.getElementById(to_parse_div_id);
+				MathJax.Hub.Queue(["Typeset", MathJax.Hub, to_parse_div_id]);
+				*/
+			   });},
+
+		       function(tab_id, tab_content_text_id){
+			   return(function(event){
+			       console.log("clicked at second button");
+			       console.log("clicked at element:");
+			       console.log(tab_id);
+			       var text = $("#"+tab_content_text_id).text();
+			       console.log("default button clicked:");
+			       console.log(text);
+			       console.log(tab_content_text_id);
+			       var to_send = {
+				   action: "load",
+				   id: self.key
+			       };
+
+			       console.log("\n sending (from refresh button callback):");
+			       console.log(to_send);
+			       
+			       var succ = function(data){
+				   self.tabs.load(data);
+			       };
+			       
+			       // get replacer data from server:
+			       self.send_data(to_send, succ);
+
+			       /*
+				// var math = document.getElementById(to_parse_div_id);
+				MathJax.Hub.Queue(["Typeset", MathJax.Hub, to_parse_div_id]);
+				*/
+			   });}
+		   ]
 	       });
 	       this.handler = handler;
 	       this.default_value = "None";
@@ -58,14 +94,17 @@ define(['jquery', 'ttabs'],
 	   };
 
 
-	   TabsEditor.prototype.on_button_click = function(key0, key1){
+	   TabsEditor.prototype.on_button_click = function(keys, row_data){
 	       var self = this;
+	       var key0= row_data[keys[0]];
+
 	       self.key = key0;
 	   };
 
 
-	   TabsEditor.prototype.load_term = function(key0, key1){
+	   TabsEditor.prototype.load_term = function(keys, row_data){
 	       var self = this;
+	       var key0= row_data[keys[0]];
 	       self.key = key0;
 	       var to_send = {
 		   action: "load",
@@ -110,7 +149,7 @@ define(['jquery', 'ttabs'],
 	       self.default_value = default_value;
 	   };
 
-	   TabsEditor.prototype.remove_term = function(predicate, signature){
+	   TabsEditor.prototype.remove_term = function(keys, row_data){
 	       var self = this;
 	       /*
 	       var to_send = JSON.stringify({

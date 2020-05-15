@@ -3,50 +3,48 @@ console.log("log ttable.js");
 
 //['jquery', 'jquery-ui-custom/jquery-ui'],
 //
-define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.min',
-	"modules/teditor", "modules/editor_signatures", "modules/editor_tabs"],
-       function(require, $, ui, tabulator, teditor, seditor, tabseditor){
+define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.min'],
+       function(require, $, ui, tabulator){
 
 	   $ = require('jquery');
 	   jquery_ui = require('jquery-ui-custom/jquery-ui');
 	   tabulator = require('tabulator/tabulator.min');
 	   
 
-	   function Table(div_storage_id,
-			  table_type, dialect,
-			  table_handler, editor_handler){
-	       
+	   function Table(options){
+	       /*
+
+		 - ``div_storage_id`` -- div_id where table will be placed
+		 - ``table_type`` -- if "dialect" editor will be used.(?)
+		 - ``dialect`` -- one of supported dialects for serverHandler.(?)
+		 - ``table_handler`` -- handler name for server
+		 - ``editor`` -- instance of one of: teditor, editor_signatures, editor_tabs
+		 - ``keys`` -- dict like keys = {0: "predicate", 1: "signature"};
+		 - ``select_callback`` -- select_callback(event, row_data) what to do
+		 when some row selected.
+		 
+		 Example:
+
+		 var table = new ttable.Table({
+		   div_storage_id: self.div_storage_id,
+		   table_type: "dialect",
+		   dialect: self.dialect,
+		   table_handler: self.table_handler,
+		   editor: editor,
+		   keys: keys,
+		   select_callback: select_callback
+	           });
+	       */
 	       // FOR global variables:
 
 	       var self = this;
 
-	       self.div_storage_id = div_storage_id;
-	       self.dialect = dialect;
-	       self.table_handler = table_handler;
+	       self.div_storage_id = options.div_storage_id;
+	       self.dialect = options.dialect;
+	       self.table_handler = options.table_handler;
 
-	       if (self.dialect == "signatures"){
-		   self.editor = new seditor.SEditor("div_replacer_storage",
-						     editor_handler);
-		   self.keys = {0: "predicate", 1: "signature"};
-		   // predicate
-		   // signature
-
-	       }else{
-		   if(["examples_sampler", "examples_parser_eqs",
-		       "examples_parser_cs"].indexOf(self.dialect) >= 0){
-		       self.editor = new tabseditor.TabsEditor("div_replacer_storage",
-							       editor_handler);
-		       self.keys = {0: "id", 1: "id"};
-		       self.editor.set_table_name(self.dialect);
-		       
-		   }else{
-		       self.editor = new teditor.TEditor("div_replacer_storage",
-							 editor_handler);
-		       self.keys = {0: "term_name", 1: "grammar_type"};
-		       // term_name;
-		       // grammar_type;
-		   }
-	       }
+	       self.editor = options.editor;
+	       self.keys = options.keys;
 
 	       // self.editor = [];
 	       // checker for test table button state:
@@ -54,10 +52,11 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 	       
 	       // index for using like primary key
 	       // (in uniqueness rows check):
-	       this.table_index = typeof table_index !== 'undefined' ? table_index : "id";  // "id";
+	       this.table_index = typeof options.table_index !== 'undefined' ? options.table_index : "id";
 	       
 	       // name of table to wait from server:
-	       this.table_type = typeof table_type !== 'undefined' ? table_type : "unnamed_table";
+	       this.table_type = typeof options.table_type !== 'undefined' ? options.table_type : "unnamed_table";
+	       
 	       // index for selecting:
 	       this.s_index = 0;
 	       
@@ -79,9 +78,53 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 	       // for replacer delete:
 	       self.row_data_delete = "none";
 	       
+	       self.select_callback = options.select_callback || function(event, row_data){
+		   console.log("from table select callback");
+	       };
 	   };
 	   
-	
+	   Table.prototype.save_entry = function(entry){
+
+	       /*Check if entry exist in data, save if not.
+		
+		*/
+
+	       var self = this;
+	       
+	       var succ = function (jsonResponse) {
+		       
+		   // rewrite data from server
+		   // clear self.data_add_storage
+		   
+		   var objresponse = JSON.parse(jsonResponse);
+		   data = objresponse['table'];
+		   console.log("\ndata");
+		   console.log(data);
+		   // check if entry with such "input" field exist:
+		   var _exist = self.is_entry_exist(data, entry, "input");
+		   if(_exist){
+		       var msg = "entry exist: " + entry;
+		       alert(msg);
+		       throw new Error(msg);
+		   }else{
+		       action = "update";
+		       var new_id = self.calculate_new_id(data);
+		       entry[self.table_index] = new_id;
+		       var succ_save = function(jsonResponse){
+			   var msg = "successfully saved with id " + new_id;
+			   console.log(msg);
+			   alert(msg);
+		       };
+		       self.send_data_to_server([entry], succ_save, "update");
+		   };		   
+		   
+	       };
+	       // data_to_send has not be empty:
+	       var data_to_send = ["tmp"];
+	       self.send_data_to_server(data_to_send, succ, "load");
+	   };
+
+	   
 	   Table.prototype.remove_table = function(){
 	       var self = this;
 
@@ -116,7 +159,8 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 	   
 	   Table.prototype.draw = function(){
 	       var self = this;
-	       var str = ('<div id="div_table" style="height: 300px; overflow: auto; border-width: 3px"></div>'
+	       var str = ('<div><p>'+self.dialect+' table</p></div>'
+			  + '<div id="div_table" style="height: 300px; overflow: auto; border-width: 3px"></div>'
 			  + '<div id="controls">'
 			  + '<input id="add" type="button" value="Добавить">'
 			  + '<input id="delete" type="button" value="Удалить">'
@@ -160,7 +204,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 		       
 		       // clear data_add_storage:
 		       self.data_add_storage = [];
-		   }
+		   };
 		   // data_to_send has not be empty:
 		   var data_to_send = ["tmp"];
 		   self.send_data_to_server(data_to_send, succ, "load");
@@ -187,9 +231,16 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 		       // for prevent clearing arrays when destroy tabular:
 		       var data_add_local = self.data_add.slice();
 		       var columns_add_local = self.columns_add.slice();
-		       console.log("data_add"+JSON.stringify(data_add_local));
-		       console.log("columns_add"+JSON.stringify(columns_add_local));
+		       console.log("data_add="+JSON.stringify(data_add_local));
+		       console.log("columns_add="+JSON.stringify(columns_add_local));
+		
+		       // FOR calculate new id:
+		       var data = $("#div_table").tabulator("getData");
+		       var new_id = self.calculate_new_id(data);
+		       data_add_local[0][self.table_index] = new_id;
 		       
+		       // END FOR
+
 		       // FOR adding table for add data:
 		       $("#div_table_add").tabulator({
 			   tooltips:true,
@@ -218,23 +269,11 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 		       ////// FOR check if element exist in old data:
 		       var data_old = $("#div_table").tabulator("getData");
 		       
-		       _exist = false;
 		       console.log("data_old");
 		       console.log(data_old);
-		       $.each(data_old, function(id_old, entry_old){
-			   
-			   if(entry_old[self.table_index] == data_to_add[0][self.table_index]){
-			       _exist = true;
-			       console.log("self.table_index");
-			       console.log(self.table_index);
-			       console.log("entry_old[self.table_index]");
-			       console.log(entry_old[self.table_index]);
-			       console.log("data_to_add[0][self.table_index]");
-			       console.log(data_to_add[0][self.table_index]);
-			       // break
-			       return false;
-			   }
-		       });
+		       var _exist = self.is_entry_exist(data_old, data_to_add[0],
+							self.table_index);
+
 		       ////// END FOR
 		       
 		       if(_exist)
@@ -345,7 +384,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 		       
 		       // clear data_delete_storage:
 		       self.data_delete_storage = [];
-		   }
+		   };
 
 		   action = "delete";
 		   if(self.data_delete_storage.length > 0){
@@ -363,7 +402,8 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 		       // console.log(term_name);
  		       
 		       // FOR remove term's replacer:
-		       self.editor.remove_term(row_data[self.keys[0]], row_data[self.keys[1]]);
+		       self.editor.remove_term(self.keys, row_data);
+		       // self.editor.remove_term(row_data[self.keys[0]], row_data[self.keys[1]]);
 		       // self.editor.remove_term(term_name, brackets);
 		       // END FOR
 		   }
@@ -373,7 +413,43 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 	       });
 	   };
 
-	   
+
+	   Table.prototype.calculate_new_id = function(data){
+	       var self = this;
+	       data.sort((a, b)=>a[self.table_index]-b[self.table_index]);
+	       // console.log("data");
+	       // console.log(data);
+	       var new_id = parseInt(data[data.length-1][self.table_index], 10)+1;
+	       // console.log("new_id = ", new_id);
+	       return(new_id)
+	   };
+
+
+	   Table.prototype.is_entry_exist = function(data, entry, field_id){
+	       /*
+		Check if entry with `field_id` exist in data.
+		
+		-``field_id`` -- ("id", "input").
+		*/
+	       var self = this;
+	       var _exist = false;
+	       $.each(data, function(id_old, entry_old){
+				   
+		   if(entry_old[field_id] == entry[field_id]){
+		       _exist = true;
+		       console.log("self.table_index");
+		       console.log(field_id);
+		       console.log("entry_old[self.table_index]");
+		       console.log(entry_old[field_id]);
+		       console.log("data_to_add[0][self.table_index]");
+		       console.log(entry[field_id]);
+		       // break
+		       return false;
+		   }
+	       });
+	       return(_exist);
+	   };
+
 	   Table.prototype.send_data_to_server = function(data, succ, action){
 	       
 	       // - ``data`` -- dict with data to be send
@@ -394,6 +470,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 	       if(data_to_send.length){
 		   var to_send = JSON.stringify({table_type: self.table_type,
 						 action: action,
+						 keys: self.keys,
 						 dialect: self.dialect,
 						 table: data_to_send});
 		   console.log("\n sending");
@@ -438,7 +515,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 		   
 		   data = objresponse['table'];
 		   
-		   // FOR add columns and data dicts:
+		   // FOR add columns for each entries, add data dicts:
 		   /* 
 		   // columns example:
 		   var columns = [
@@ -455,8 +532,9 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 		   console.log("FROM make_table.get:");
 		   console.log("data[0] ");
 		   console.log(data[0]);
+		   // use first entry for
 		   $.each(data[0], function(index, value){
-		       // make collumns for both tables:
+		       // making collumns for both tables:
 		       
 		       var entry = {};
 		       var entry_columns_add = {};
@@ -487,7 +565,8 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 		       self.columns_add.push(entry_columns_add);
 		       
 		   });
-		   
+		   // take first entry to data_add template
+		   // (template for add table):
 		   self.data_add.push(entry_data_add);
 		   console.log("columns");
 		   console.log(self.columns);
@@ -505,6 +584,18 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 		   $("#div_table").tabulator(
 		       {
 			   tooltips:true,
+			   tooltips:function(cell){
+			       //cell - cell component
+			       
+			       //function should return a string for the
+			       // tooltip of false to hide the tooltip
+			       //return cells "field - value";
+			       return(cell.getColumn().getField()
+				      + ": " + cell.getValue()
+				      // + "\\n select for play_space"
+				     );
+			   },
+
 			   data: data_local,
 			   columns: columns_local,
 			   index: self.table_index,
@@ -535,7 +626,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 			   rowClick:function(e, row){
 			       self.s_index = row.getIndex();
 			       console.log("from rowClick:");
-			       console.log("Row " + self.s_index + " Clicked!!!!")
+			       console.log("Row " + self.s_index + " Clicked!!!!");
 			       // console.log(row);
 			       var row_data = row.getData();
 			       console.log(row_data);
@@ -557,9 +648,12 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 			       self.row_data = row_data;
 	       
 			       // FOR replacer load dialect:
-			       self.editor.load_term(row_data[self.keys[0]], row_data[self.keys[1]]);
+			       self.editor.load_term(self.keys, row_data);
+			       // self.editor.load_term(row_data[self.keys[0]], row_data[self.keys[1]]);
 			       // self.editor.load_term(term_name, brackets);
 			       // END FOR
+			       
+			       self.select_callback(e, row_data);
 			   },	
 		       });
 		   // END FOR
@@ -579,7 +673,8 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'tabulator/tabulator.
 			       // var term_name = self.row_data.term_name;
 			       // var brackets = self.row_data.grammar_type;
 
-			       self.editor.on_button_click(self.row_data[self.keys[0]], self.row_data[self.keys[1]]);
+			       self.editor.on_button_click(self.keys, self.row_data);
+			       // self.editor.on_button_click(self.row_data[self.keys[0]], self.row_data[self.keys[1]]);
 			       // self.editor.on_button_click(term_name, brackets);
 
 			   }else{

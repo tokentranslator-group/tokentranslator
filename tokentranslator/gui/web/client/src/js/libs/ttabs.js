@@ -23,8 +23,11 @@ define(['jquery', "MathJax/MathJax"],
 		(ex: ["U'=a*(D[U,{x,2}]+ D[U,{y,2}])",
 		"abelian(G) \\and subgroup(H, G,) => abelian(H)"])
 
-		- ``tabs_buttons_callback`` [optional] -- callback for buttons
-		which accepted (tab_id, tab_content_text_div_id) args.
+		- ``buttons_names`` -- list of names for `parse` buttons.
+
+		- ``tabs_buttons_callbacks`` [optional] -- callbacks for
+		each buttons for all tabs which accepted
+		(tab_id, tab_content_text_div_id) args.
 
 		- ``dialog_edit_callback`` [optional] -- callback for buttons
 		which accepted (tab_content_text_div_id) args.
@@ -37,7 +40,8 @@ define(['jquery', "MathJax/MathJax"],
 		   header: "header",
 	           tabs_ids: ["parser", "out"],
 	           tabs_contents: ["2+2", "4"],
-	           tabs_buttons_callback: function(tab_id, tab_content_text_div_id)
+		   buttons_names: ["save"],
+	           tabs_buttons_callbacks: [function(tab_id, tab_content_text_div_id)]
 	           dialog_edit_callback: function(tab_content_text_div_id)
 		});
 
@@ -77,7 +81,7 @@ define(['jquery', "MathJax/MathJax"],
 	       self.set_div_id(div_id);
 	       var subdiv_id_name = options.subdiv_id_name || "parser";
 	       self.set_subdiv_id_name(subdiv_id_name);
-	       self.buttons_name = options.buttons_name || subdiv_id_name;
+	       
 	       self.header = options.header || "header";
 	       
 	       self.data = {};
@@ -86,9 +90,11 @@ define(['jquery', "MathJax/MathJax"],
 	       self.data["tabs_contents"] = options.tabs_contents
 		   || ["tab0 contents", "tab1 contents"];
 
+	       self.buttons_names = options.buttons_names || [subdiv_id_name];
+
 	       // ``parse`` button for each tab. see default for format:
-	       self.tabs_buttons_callback = options.tabs_buttons_callback
-		   || function(tab_id, tab_content_text_id){
+	       self.tabs_buttons_callbacks = options.tabs_buttons_callbacks
+		   || [function(tab_id, tab_content_text_id){
 			   return(function(event){
 			       console.log("clicked at element:");
 			       console.log(tab_id);
@@ -100,7 +106,7 @@ define(['jquery', "MathJax/MathJax"],
 				// var math = document.getElementById(to_parse_div_id);
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, to_parse_div_id]);
 				*/
-			   });};
+			   });}];
 
 	       // when clicked at dialogs ``Edit`` button
 	       self.dialog_edit_callback = options.dialog_edit_callback
@@ -120,6 +126,7 @@ define(['jquery', "MathJax/MathJax"],
 			       console.log(text);
 			       $("#"+tab_content_text_div_id).text(text);
 			       // $("#"+self.get_tabs_id()).tabs("refresh");
+			   
 			       // refresh div:
 			       let re = new RegExp("&lt;br&gt;", "g");
 			       var tmp_html = $("#"+tab_content_text_div_id).html().replace(re, "<br>");
@@ -246,7 +253,8 @@ define(['jquery', "MathJax/MathJax"],
 	   Tabs.prototype.get_tab_content_text_id = function(id){
 
 	       /*is name of div (inside ``tabs_content__`` div),
-		where text will be rendered.*/
+		where text will be rendered.
+		must be ended with "_"+id for `create_dialog_callback`*/
 
 	       var self = this;
 	       var content_text_id = ("tab_content_text_"+self.subdiv_id_name
@@ -255,12 +263,14 @@ define(['jquery', "MathJax/MathJax"],
 	       return(content_text_id);
 	   };
 
-	   Tabs.prototype.get_tab_content_button_id = function(id){
+	   Tabs.prototype.get_tab_content_button_id = function(tab_id, inner_id){
 
-	       /* div of button inside ``tab_content_text_`` div*/
+	       /* div of each button inside ``tab_content_text_`` div
+		- ``inner_id`` -- id of each button inside tab.
+		*/
 
 	       var self = this;
-	       var button_id = "button_"+self.subdiv_id_name+ "_"+id;
+	       var button_id = "button_"+self.subdiv_id_name+ "_"+tab_id+"_"+inner_id;
 	       console.log("button_id = ", button_id);
 	       return(button_id);
 	   };
@@ -387,17 +397,21 @@ define(['jquery', "MathJax/MathJax"],
 
 	       var self = this;
 	       $.each(self.data["tabs_contents"],
-		      function(elm, id){
+		      function(tab_id, elm){
 			  // for editor:
-			  var edit_id = self.get_tab_content_text_id(elm);
-			  // var edit_id = "#to_"+subdiv_id_name+ '_'+sliced_id+'_'+"_div_"+elm;
+			  var edit_id = self.get_tab_content_text_id(tab_id);
+			  // var edit_id = "#to_"+subdiv_id_name+ '_'+sliced_id+'_'+"_div_"+id;
 			  $("#"+edit_id).on("click",
 					self.create_dialog_callback(edit_id));
 			  // for parse button:
-			  var but_id = "#" + self.get_tab_content_button_id(elm);
-			  // var but_id = "#button_"+subdiv_id_name+ '_'+sliced_id+"_"+elm;
-			  $(but_id).on("click",
-				       self.tabs_buttons_callback(elm, edit_id));
+			  // add buttons to each tab:
+			  $.each(self.buttons_names,
+				 function(inner_id, elm){
+				     var but_id = "#" + self.get_tab_content_button_id(tab_id, inner_id);
+				     $(but_id).on("click",
+						  self.tabs_buttons_callbacks[inner_id](tab_id, edit_id));
+		
+				 });
 		      });
 	   };
 
@@ -427,6 +441,39 @@ define(['jquery', "MathJax/MathJax"],
 			   console.log("dialog opend");
 			   $(subdiv_id).toggleClass("ui-widget ui-corner-all ui-widget-shadow style_editor_dinamic");
 			   $("#"+self.get_dialog_editor_id()).toggleClass("ui-widget-content ui-corner-all");
+
+			   var div_native = tab_content_text_div_id;
+		   
+			   // text from  self.data:			       
+			   var tab_id_list = div_native.split("_");
+			   var tab_id = parseInt(tab_id_list[tab_id_list.length-1], 10);
+			   var text = self.data["tabs_contents"][tab_id];
+			   
+			   // convert to "<br>":
+			   var sents = text.split("\n");
+			   var str_input = sents.join("<br>");
+			   
+			   console.log("used text = ", str_input);
+			   
+			   $("#"+self.get_dialog_editor_id()).text(str_input);
+			   
+			   // TODO: bug either of these is not work:
+			   // first click after load alwais empty sting in editor
+			   // refresh div:
+			   /*
+			   let re = new RegExp("&lt;br&gt;", "g");
+			   console.log("tmp_html0=", $("#"+tab_content_text_div_id).html());
+			   var tmp_html = $("#"+tab_content_text_div_id).html().replace(re, "<br>");
+			   // tmp_html;
+			   console.log("tmp_html=", tmp_html);
+			   $("#"+tab_content_text_div_id).html(tmp_html);
+			    */
+			   // refresh div:
+			   // var tmp_html = $("#"+self.get_dialog_editor_id()).html();
+			   // console.log("tmp_html = ", tmp_html);
+			   
+			   // $("#"+self.get_dialog_editor_id()).html(tmp_html);
+		   
 			   
 		       },
 		       close: function(event, ui){
@@ -445,7 +492,9 @@ define(['jquery', "MathJax/MathJax"],
 		   // $("#tab_content_text_div_id").toggleClass("ui-widget ui-corner-all ui-widget-shadow");
 		   // $("#epi_editor").toggleClass("ui-widget-content ui-corner-all");
 		   // get data from self.data
+
 		   // FOR send text to dialog:
+		   /*
 		   var div_native = tab_content_text_div_id;
 		   
 		   // text from  self.data:			       
@@ -460,13 +509,8 @@ define(['jquery', "MathJax/MathJax"],
 		   console.log("used text = ", str_input);
 		   
 		   $("#"+self.get_dialog_editor_id()).text(str_input);
-
-		   // refresh div:
-		   // var tmp_html = $("#"+self.get_dialog_editor_id()).html();
-		   // console.log("tmp_html = ", tmp_html);
-		   
-		   // $("#"+self.get_dialog_editor_id()).html(tmp_html);
-
+		    */
+		    
 		   // $("#"+self.get_dialog_editor_id()).text($(tab_content_text_div_id).text());
 		   console.log("dialog created");
 		   // END FOR
@@ -576,10 +620,19 @@ define(['jquery', "MathJax/MathJax"],
 			+ elm
 			+ '</div>'
 			// + '<br>'
-			+ '<input id="'+self.get_tab_content_button_id(id)+'" type="button"'
-			+ ' value="'+self.buttons_name+'"  class="ui-button">' // 
-			//+ '<br>'
 		       );
+
+	       // add buttons to each tab:
+	       $.each(self.buttons_names,
+		      function(inner_id, elm){
+			  str_input += ('<input id="'
+					+ self.get_tab_content_button_id(id, inner_id)
+					+ '" type="button"');	  
+			  str_input += (' value="'
+					+ self.buttons_names[inner_id]
+					+ '"  class="ui-button">');		   
+		      });
+	       	       	
 	       return(str_input);
 	   };
 
