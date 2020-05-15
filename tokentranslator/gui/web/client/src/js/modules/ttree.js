@@ -57,7 +57,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'fancytree/modules/jq
 
 			   if (data.node.parent.title == "eqs parser"){
 			       if (data.node.title == "tokens path"){
-				   self.net.update("path_eqs")
+				   self.net.update("path_eqs");
 				   console.log("path activated");
 				   // window.open("/", "_self");
 				   // $("_self").load("/");
@@ -72,7 +72,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'fancytree/modules/jq
 				   console.log("play space activated");
 			       }
 			       if (data.node.title=="db path"){
-				   
+				   self.net.update("path_exs_eqs");
 				   console.log("db path activated");
 			       }
 			       if (data.node.title=="db"){
@@ -84,7 +84,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'fancytree/modules/jq
 
 			   if (data.node.parent.title == "cs parser"){
 			       if (data.node.title == "tokens path"){
-				   self.net.update("path_cs")
+				   self.net.update("path_cs");
 				   // window.open("/", "_self");
 				   // $("_self").load("/");
 			       }
@@ -98,7 +98,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'fancytree/modules/jq
 				   console.log("play space activated");
 			       }
 			       if (data.node.title=="db path"){
-				   
+				   self.net.update("path_exs_cs");				   
 				   console.log("db path activated");
 			       }
 			       if (data.node.title=="db"){
@@ -112,7 +112,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'fancytree/modules/jq
 			   if (data.node.parent.title == "sampler"){
 			       if (data.node.title == "signatures path"){
 				   console.log("signatures path activated");
-				   // self.net.update("path_cs")
+				   self.net.update("path_signatures");
 				   // window.open("/", "_self");
 				   // $("_self").load("/");
 			       }
@@ -126,7 +126,7 @@ define(['require', 'jquery', 'jquery-ui-custom/jquery-ui', 'fancytree/modules/jq
 				   console.log("play space activated");
 			       }
 			       if (data.node.title=="db path"){
-				   
+				   self.net.update("path_exs_s");
 				   console.log("db path activated");
 			       }
 			       if (data.node.title=="db"){

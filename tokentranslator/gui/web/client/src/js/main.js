@@ -61,32 +61,40 @@ requirejs(['jquery', 'jquery-ui-custom/jquery-ui', 'modules/scene',
 		  welcome: new bwelcome.Board("div_scene"),
 		  path_eqs: new tpath.Board("div_scene", "eqs"),
 		  path_cs: new tpath.Board("div_scene", "cs"),
+		  path_signatures: new tpath.Board("div_scene", "signatures"),
 		  
-		  tables_eqs: new tables.Board("div_scene", "eqs",
+		  path_exs_s: new tpath.Board("div_scene",
+					      "examples_sampler"),
+		  path_exs_eqs: new tpath.Board("div_scene",
+						"examples_parser_eqs"),
+		  path_exs_cs: new tpath.Board("div_scene",
+					       "examples_parser_cs"),
+		  
+		  tables_eqs: new tables.Board(self, "div_scene", "eqs",
 					       'api/tables/dialect',
 					       'api/tables/replacer'),
-		  tables_cs: new tables.Board("div_scene", "cs",
+		  tables_cs: new tables.Board(self, "div_scene", "cs",
 					      'api/tables/dialect',
 					      'api/tables/replacer'),
-		  tables_signatures: new tables.Board("div_scene", "signatures",
+		  tables_signatures: new tables.Board(self, "div_scene", "signatures",
 						      'api/tables/signatures',
 						      'api/tables/signatures_code'),
 
-		  tables_db_sampler: new tables.Board("div_scene", "examples_sampler",
+		  tables_db_sampler: new tables.Board(self, "div_scene", "examples_sampler",
 						      '/api/tables/examples_db_table',
 						      '/api/tables/examples_db_editor'),
 
-		  tables_db_eqs: new tables.Board("div_scene", "examples_parser_eqs",
+		  tables_db_eqs: new tables.Board(self, "div_scene", "examples_parser_eqs",
 						  '/api/tables/examples_db_table',
 						  '/api/tables/examples_db_editor'),
 
-		  tables_db_cs: new tables.Board("div_scene", "examples_parser_cs",
+		  tables_db_cs: new tables.Board(self, "div_scene", "examples_parser_cs",
 						 '/api/tables/examples_db_table',
 						 '/api/tables/examples_db_editor'),
 		  
-		  parser_eqs: new tparser.Parser("eqs"),
-		  parser_cs: new tparser.Parser("cs"),
-		  sampler: new sampler.Sampler()
+		  parser_eqs: new tparser.Parser(self, "eqs"),
+		  parser_cs: new tparser.Parser(self, "cs"),
+		  sampler: new sampler.Sampler(self)
 	      };
 	      
 	      // board for patterns:
@@ -131,7 +139,6 @@ requirejs(['jquery', 'jquery-ui-custom/jquery-ui', 'modules/scene',
 		  self.update("welcome");
 		  // self.update("path_cs");
 		  // self.update("path_eqs");
-		  
 		  console.log("dialect:", self.boards[self.current_mode].dialect);
 		  
 		  

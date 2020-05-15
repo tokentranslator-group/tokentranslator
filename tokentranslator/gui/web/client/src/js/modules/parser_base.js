@@ -3,7 +3,7 @@ console.log("log parser_base.js");
 
 define(['jquery'],
        function($){
-	   function ParserBase(storage_div_id, subdiv_id_name){
+	   function ParserBase(net, storage_div_id, subdiv_id_name){
 	       /*
 		 
 		 - ``div_id`` -- id for div, which be used.
@@ -13,6 +13,7 @@ define(['jquery'],
 		*/
 
 	       var self = this;
+	       self.net = net;
 	       self.storage_div_id = storage_div_id;
 	       self.subdiv_id_name = subdiv_id_name;
 	   };
@@ -20,7 +21,7 @@ define(['jquery'],
 
 	   ParserBase.prototype.create_input_field = function(
 	       input_names, input_default_contents,
-	       input_buttons_callbacks){
+	       input_buttons_callbacks, save_entry_func){
 	       /*
 		 Create editable field tab for each input in ``input_names``
 		 All ``input_names``, ``input_default_content``,
@@ -88,7 +89,10 @@ define(['jquery'],
 			       + '</div>'
 			       + '<br>'
 			       + '<input id="button_'+self.subdiv_id_name+ '_'+elm+'" type="button"'
-			       + ' value="'+self.subdiv_id_name+'" class="ui-button"><br>');
+			       + ' value="'+self.subdiv_id_name+'" class="ui-button">'
+			       + '<input id="button_'+self.subdiv_id_name+ '_'+elm+'_save'+'" type="button"'
+			       + ' value="'+'save'+'" class="ui-button"><br>'
+			       +'<br>');
 			  $("#tif-"+elm).html(str_input);
 			  $("#to_"+self.subdiv_id_name+"_div_"+elm).tooltip();
 		      });
@@ -110,6 +114,11 @@ define(['jquery'],
 			  $(but_id).on("click",
 				       input_buttons_callbacks[elm](edit_id));
 			  
+			  // for save entry button:
+			  var but_save_id = "#button_"+self.subdiv_id_name+"_"+elm+"_save";
+			  $(but_save_id).on("click", function(event){
+			      save_entry_func();
+			  });
 		      });
 	       // END FOR
 	   };
@@ -151,6 +160,9 @@ define(['jquery'],
 			       var text = $("#epi_editor").text();
 			       console.log(text);
 			       $(to_parse_div_id).text(text);
+			       // FOR save entry for table:
+			       self.net.entry = {}
+			       // END FOR
 			       // $("#to_parse_div").text(text);
 			       $( this ).dialog( "close" );
 			   },
