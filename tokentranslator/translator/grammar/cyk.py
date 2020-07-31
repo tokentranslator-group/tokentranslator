@@ -58,7 +58,7 @@ def init_P(grammar, length):
 
 
 def cyk(goal=["(", "a", "+", "a", ")", "*", "a"],
-        grammar=grammar, node_data=None):
+        grammar=grammar, node_data=None, return_all=False):
 
     '''Cocke–Younger–Kasami algorithm.
     
@@ -138,7 +138,10 @@ def cyk(goal=["(", "a", "+", "a", ")", "*", "a"],
         # if more then one solution found, remove
         # parent uncentrality:
         Tree[('E', 1, len(goal))].add_parent()
-        result = (P[('E', 1, len(goal))], Tree[('E', 1, len(goal))])
+        if return_all:
+            result = (P, Tree)
+        else:
+            result = (P[('E', 1, len(goal))], Tree[('E', 1, len(goal))])
     except KeyError:
         print("cyk fail, founded rules will be returned")
         result = (P, Tree)

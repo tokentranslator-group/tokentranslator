@@ -76,6 +76,8 @@ class ExamplesDB(BaseDB):
             out.append(dict(zip([table_field_names[id_idx],
                                  table_field_names[input_idx]],
                                 [entry[id_idx], entry[input_idx]])))
+        print("show_all_entries:out:")
+        print(out)
         return(out)
 
     def add_pattern(self, entry):
