@@ -39,9 +39,9 @@ class LexMixTokenizer():
         '''Used before ``self.lex_br``
         patterns type must be one of supported
         (PatternRe, PatternTxt, PatternEx)
-        All patterns must be maked and compiled
+        All patterns must be made and compiled
         and ``pattern.set_grammar_parts`` must
-        be used before use this method.
+        be used before using this method.
         (see ``tests_tokenizer_mix.py`` for examples)'''
 
         self.patterns = patterns_list

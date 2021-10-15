@@ -1,3 +1,4 @@
+# parser/tokentranslator$ python3 -m tokentranslator.gui.web.server.server_main
 # ~/anaconda3/envs/math/bin/./python3 -c "import tokentranslator.gui.web.server.server_main as sm; sm.run()"
 # parser$ ~/anaconda3/bin/python3 -m gui.web.server.server_main
 

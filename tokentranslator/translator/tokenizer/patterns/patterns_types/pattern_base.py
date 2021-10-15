@@ -100,7 +100,7 @@ class PatternBase():
 
         '''Split sent_list at pattern.parts and replace
         each found part value to ``WordDict`` object
-        recursively. WordDict onject will be contain
+        recursively. WordDict onject will contain
         some data (see ``self.map_ptg``).
 
         Before this ``self.set_grammar_parts`` must be used for
@@ -392,6 +392,9 @@ class PatternBase():
             return(template)
 
         subpart = res.groupdict()['subpart']
+        # print("subpart: ", subpart)
+        # print("subterms_values[subpart]: ", subterms_values[subpart])
+
         template = (template[:res.start()]
                     + subterms_values[subpart]
                     + template[res.end():])
@@ -403,8 +406,12 @@ class PatternBase():
         ''' Sub to self.template all subterms recursively:
               ${{part_name}} |-> subterms_values[term_name].
 
-        ``re.sub(r'\$\{\{(?P<subterm>([a-z|A-Z|0-9])+)\}\}', \
-        r'\g<subterm>','a+${{stiV123}}(x)+${{si3}}(y)')``'''
+        >>> re.sub(r'\$\{\{(?P<subterm>([a-z|A-Z|0-9])+)\}\}', \
+                   r'\g<subterm>','a+${{stiV123}}(x)+${{si3}}(y)')
+        'a+stiV123(x)+si3(y)'
+        # and then fill ``stiV123`` and ``si3`` with 
+        # subterms_values['stiV123'] and subterms_values['si3']
+        '''
 
         return(self.sub_parts_cells_with_values(subparts_values,
                                                 template))

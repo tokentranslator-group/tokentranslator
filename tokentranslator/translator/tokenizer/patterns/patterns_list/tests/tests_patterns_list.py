@@ -82,9 +82,9 @@ def test_sort(dialect):
 
 def run():
     # test_sort(eqs)
-    test_sort(cs)
+    # test_sort(cs)
     # test_orders()
-    # test_make(eqs)
+    test_make(eqs)
     # test_make(cs)
 
 

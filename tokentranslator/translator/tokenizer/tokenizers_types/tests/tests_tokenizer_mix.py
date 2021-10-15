@@ -37,8 +37,9 @@ if __name__ == '__main__':
             ' and \\for_all y \in Y: y(t-1.1) == z(t-1.2)']
     print("sent:")
     print(sent)
-
+    print("patterns: in, norm, cond")
     out = tok.lex_br(sent)
+    print("LexMixTokenizer.lex_br:")
     print(out)
 
     print('\ntest_1: a terms')
@@ -62,6 +63,7 @@ if __name__ == '__main__':
     tok = LexMixTokenizer()
     tok.set_patterns_list(patterns)
     out = tok.lex_br(sent)
+    print("LexMixTokenizer.lex_br:")
     print(out)
 
     print("\nfound WordDict re_res:")
@@ -92,6 +94,7 @@ if __name__ == '__main__':
     print(sent)
 
     out = tok.lex_br(sent)
+    print("LexMixTokenizer.lex_br:")
     print(out)
 
     print('\ntest_3: a terms txt')
@@ -116,4 +119,5 @@ if __name__ == '__main__':
     tok = LexMixTokenizer()
     tok.set_patterns_list(patterns)
     out = tok.lex_br(sent)
+    print("LexMixTokenizer.lex_br:")
     print(out)

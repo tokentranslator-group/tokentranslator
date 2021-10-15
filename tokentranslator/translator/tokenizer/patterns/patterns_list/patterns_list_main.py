@@ -32,7 +32,7 @@ class Patterns():
         
         '''Complite term's subterms parts (like ${{pred}},
         ${{arg_space}}, ${{float}}) and separate term into
-        grammars parts with add replacement for them from
+        grammars parts with adding replacement for them from
         ``grammar_parts``'''
 
         subterms_values = self.patterns_src
@@ -81,6 +81,7 @@ class Patterns():
             term_pattern = data[1]
             grammar_type = data[2]
             pattern_type = data[3]
+            
             '''
             print("term_name, term_pattern,"
                   + " grammar_type, pattern_type:")

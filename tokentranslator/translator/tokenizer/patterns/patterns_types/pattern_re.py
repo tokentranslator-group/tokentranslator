@@ -89,7 +89,7 @@ class PatternRe(PatternBase):
         even if ``part`` contain some parentheses
         (it's reason why re.split dont used),
         Each ocurance of ``part`` will be replaced
-        with ``self.map_ptw`` function unicly (i.e. all
+        with ``self.map_ptw`` function uniquely (i.e. all
         contained data will be relative to found substr
         value).
 
@@ -106,6 +106,8 @@ class PatternRe(PatternBase):
         - ``part`` -- re expresion
         - ``sent`` -- string'''
 
+        # print("part:", part)
+        # print("sent:", sent)
         res = re.search(part, sent)
 
         if res is None:
