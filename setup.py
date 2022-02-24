@@ -3,6 +3,10 @@ import os
 import sys
 
 from setuptools import setup, find_packages, find_namespace_packages
+
+from setuptools.command.install import install
+from setuptools.command.develop import develop
+
 # from pkg_resources import get_distribution, DistributionNotFound
 
 # import setuptools_scm
@@ -13,7 +17,130 @@ from setuptools_scm import get_version
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-if __name__ == "__main__":
+# FOR setup args:
+class CommandMixin(object):
+    '''
+    for using argument in pip for both install and development mode
+
+    pip install -v --install-option="--dialect=wolfram" dist/tokentranslator-0.0.1.2.dev8.tar.gz
+    or
+    pip install  -v --install-option="--dialect=wolfram" -e .
+
+    '''
+    user_options = [
+        ('someopt', None, 'a flag option'),
+        ('dialect=', None, 'an option that takes a value')
+    ]
+
+    def initialize_options(self):
+        super().initialize_options()
+        # Initialize options
+        self.someopt = None
+        self.dialect = "tex"
+
+    def finalize_options(self):
+        # Validate options
+        # if self.someval < 0:
+        #     raise ValueError("Illegal someval!")
+        print("finalize dialect: ", self.dialect)
+        # print("install_dir: ", self.install_dir)
+        # print("installed_projects: ", self.installed_projects)
+
+        super().finalize_options()
+
+    def run(self):
+        # Use options
+        global dialect
+        dialect = self.dialect  # will be 1 or None
+        print("run dialect:", dialect)
+        print("self.distribution")
+        print(dir(self.distribution))
+        super().run()
+
+
+class InstallCommand(CommandMixin, install):
+    user_options = (getattr(install, 'user_options', [])
+                    + CommandMixin.user_options)
+
+
+class DevelopCommand(CommandMixin, develop):
+    user_options = (getattr(develop, 'user_options', [])
+                    + CommandMixin.user_options)
+# END FOR
+
+
+def change_db_path(installed_projects, install_lib):
+    '''
+    Change db entries in 'tokentranslator/configs/config_patterns_db.json'
+    file as they given in 
+    pip install -v --install-option="--dialect=wolfram" dist/tokentranslator-0.0.1.2.dev8.tar.gz
+    or
+    pip install  -v --install-option="--dialect=wolfram" -e .
+
+    if first case either virtual environment or global site-packages will be used
+    if second case local folder will be used (development mode)
+    '''
+    # where project to be installed:
+    path_root = None
+
+    if "tokentranslator" in installed_projects:
+       
+        print("installed_projects.module_path: ",
+              installed_projects['tokentranslator'].module_path)
+        print("installed_projects.location: ",
+              installed_projects['tokentranslator'].location)
+
+        # if develop mode then location will point at source folder:
+        # from which pip install -e . is used
+        path_root = installed_projects['tokentranslator'].location
+        path_root = os.path.join(path_root, "tokentranslator")
+    else:
+        print("installed_projects failed")
+    
+    # if not develop mode then installed:
+    if path_root is None:
+        path_root = install_lib
+        # path_root = installed.command_obj['install'].install_lib
+        path_root = os.path.join(path_root, "tokentranslator")
+
+    cmd = ["--dialect" in arg for arg in sys.argv]
+    if True in cmd:
+        dialect = sys.argv[cmd.index(True)].split("=")[1]
+    else:
+        dialect = "tex"
+    print("dialect:", dialect)
+
+    # import tokentranslator
+    from tokentranslator.gui.web.model.model_main import TokenizerDB
+    model = TokenizerDB()
+    # path_root = os.path.dirname(tokentranslator.__file__)
+    print("path_root:", path_root)
+
+    # to change to tex use commands:
+    if dialect == "tex":
+        path = os.path.join(
+            path_root,
+            "env/equation_net/data/terms/input/tex_dialect.db")
+    elif dialect == "wolfram":
+        path = os.path.join(
+            path_root,
+            "env/equation_net/data/terms/input/demo_dialect.db")
+    else:
+        raise(Exception("dialect must be either tex or wolfram"))
+
+    # for pip install -e . first time
+    try:
+        print("path dialect db: ", path)
+        model.save_path("eqs", path)
+        model.change_dialect_db("eqs")
+        # this change "eqs" path for all parsers wherever they run.
+        # show current dialect.db path:
+        model.get_path_of_dialect_db("eqs")
+    except:
+        print("pip install -e . first time run error")
+
+
+def installator():
     print("\nthis_dir:")
     print(this_dir)
     print("\nfind_packages:")
@@ -40,9 +167,14 @@ if __name__ == "__main__":
         s_reguirements = f.read()
     requirements = s_reguirements.split("\n")
     print("\nrequirements:")
-    print(requirements)
-    
-    setup(
+    print(requirements)    
+
+    installed = setup(
+        cmdclass={
+            'install': InstallCommand,
+            'develop': DevelopCommand,
+        },
+        
         name="tokentranslator",
 
         # use version (only) from setuptools_scm:
@@ -87,3 +219,36 @@ if __name__ == "__main__":
         install_requires=requirements
     )
 
+    print("installed:")
+    # print(dir(installed))
+    print("get_command_obj('install')")
+    inst = installed.get_command_obj('install')
+    inst.ensure_finalized()
+    # inst.run()
+
+    print("get_command_obj('develop')")
+    dev = installed.get_command_obj('develop')
+
+    # if not do that, it crash during installation
+    try:
+        dev.ensure_finalized()
+    except Exception as e:
+        print(e)
+        print("dev.ensure_finalized faild. Probably in install mode.")
+    # dev.run()
+
+    print("command_obj[develop].install_dir:")
+    print(installed.command_obj['develop'].install_dir)
+
+    installed_projects = installed.command_obj['develop'].installed_projects
+    print("command_obj[develop].installed_projects:")
+    print(installed_projects)
+
+    install_lib = installed.command_obj['install'].install_lib
+    print("install_lib: ", install_lib)
+    
+    change_db_path(installed_projects, install_lib)
+
+
+if __name__ == "__main__":
+    installator()

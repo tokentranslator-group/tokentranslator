@@ -1,6 +1,7 @@
 ### Main tokentranslator tests:
 
 # new equation translator test:
+# (mostly for wolfram)
 ~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.env.equation_net.tests as ts;ts.run()"
 
 # old equation translator test (deprecated):

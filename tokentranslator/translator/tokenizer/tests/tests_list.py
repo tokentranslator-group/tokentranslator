@@ -21,6 +21,7 @@ tests_dict_cs = {
     8: ['((\\for_all x) \\in X): Eq(x(t-1.0) == y)Eq'],
     9: ['(\\for_all x) \\in X'],
 
+    # fail (maybe because two Eq: Eq(G)Eq \and Eq(H)Eq)
     10: ['(((\\for_all x) \\in X: Eq(x(t-1.0) == y)Eq)',
          '\\and ((\\for_all y) \\in Y: Eq(y == z)Eq)',
          ')\\into group(x) \\and group(Y)'],

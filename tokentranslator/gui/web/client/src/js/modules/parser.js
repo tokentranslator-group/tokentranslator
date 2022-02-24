@@ -276,22 +276,29 @@ define(['jquery', 'modules/parser_base', 'modules/tnet',
 	       console.log("save_entry");
 	       console.log("self:");
 	       console.log(self);
-	       if (!("input" in self.entry & "sympy" in self.entry)){
-		   var msg = ('entry["input"] is undefined.'
-			      + '\n use parse first');
-		   alert(msg);
-		   throw new Error(msg);
-	       };
-	       
 	       console.log("self.entry:");
 	       console.log(self.entry);
-
+	       
 	       console.log("self.gnet.boards:");
 	       console.log(self.gnet.boards["tables_db_eqs"]);
 	       if(self.dialect=="eqs"){
+		   if (!("input" in self.entry & "sympy" in self.entry)){
+		       var msg = ('entry["input"] or entry["sympy"] is undefined.'
+				  + '\n use parse first');
+		       alert(msg);
+		       throw new Error(msg);
+		   };
+	       
 		   self.gnet.boards["tables_db_eqs"].save_entry(self.entry);
 	       }
 	       if(self.dialect=="cs"){
+		   if (!("input" in self.entry)){
+		       var msg = ('entry["input"] is undefined.'
+				  + '\n use parse first');
+		       alert(msg);
+		       throw new Error(msg);
+		   };
+	       
 		   self.gnet.boards["tables_db_cs"].save_entry(self.entry);
 	       }
 	       self.entry = {}
