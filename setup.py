@@ -20,11 +20,13 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 # FOR setup args:
 class CommandMixin(object):
     '''
-    for using argument in pip for both install and development mode
+    For using arguments in pip for both install and development mode:
 
     pip install -v --install-option="--dialect=wolfram" dist/tokentranslator-0.0.1.2.dev8.tar.gz
     or
     pip install  -v --install-option="--dialect=wolfram" -e .
+
+    # REF: https://stackoverflow.com/questions/18725137/how-to-obtain-arguments-passed-to-setup-py-from-pip-with-install-option#
 
     '''
     user_options = [
