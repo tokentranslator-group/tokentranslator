@@ -147,7 +147,7 @@ def change_db_path(installed_projects, install_lib):
         '''
         model.set_and_change_default_path_for_dialect("eqs", path)
     except:
-        print("pip install -e . first time run error")
+        print("WARNING: pip install -e . first time run error")
     # END FOR
 
 
@@ -245,7 +245,7 @@ def installator():
         dev.ensure_finalized()
     except Exception as e:
         print(e)
-        print("dev.ensure_finalized faild. Probably in install mode.")
+        print("WARNING: dev.ensure_finalized faild. Probably in install mode.")
     # dev.run()
 
     print("command_obj[develop].install_dir:")
