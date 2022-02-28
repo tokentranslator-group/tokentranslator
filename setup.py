@@ -112,9 +112,6 @@ def change_db_path(installed_projects, install_lib):
         dialect = "tex"
     print("dialect:", dialect)
 
-    # import tokentranslator
-    from tokentranslator.gui.web.model.model_main import TokenizerDB
-    model = TokenizerDB()
     # path_root = os.path.dirname(tokentranslator.__file__)
     print("path_root:", path_root)
 
@@ -130,16 +127,28 @@ def change_db_path(installed_projects, install_lib):
     else:
         raise(Exception("dialect must be either tex or wolfram"))
 
+    # FOR change dialect path:
+    # import tokentranslator
+    from tokentranslator.db_models.model_main import TokenizerDB
+    # from tokentranslator.gui.web.model.model_main import TokenizerDB
+    model = TokenizerDB()
+    
     # for pip install -e . first time
     try:
-        print("path dialect db: ", path)
-        model.save_path("eqs", path)
-        model.change_dialect_db("eqs")
-        # this change "eqs" path for all parsers wherever they run.
-        # show current dialect.db path:
-        model.get_path_of_dialect_db("eqs")
+        '''
+        # this not working here because root path
+        # changed during installation and depend on 
+        # dev mode also
+        # sometimes it can install even in tmp folder
+        if dialect == "tex":
+            model.change_eqs_to_tex()
+        elif dialect == "wolfram":
+            model.change_eqs_to_wolfram()
+        '''
+        model.set_and_change_default_path_for_dialect("eqs", path)
     except:
         print("pip install -e . first time run error")
+    # END FOR
 
 
 def installator():

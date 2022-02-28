@@ -4,7 +4,7 @@ import tokentranslator.translator.tree.maps as ms
 
 from tokentranslator.translator.sampling.slambda.data.stable import stable_fixed
 # from tokentranslator.translator.sampling.slambda.data.stable import stable
-from tokentranslator.gui.web.model.model_stable import ModelStable
+from tokentranslator.db_models.model_stable import ModelStable
 
 from functools import reduce
 

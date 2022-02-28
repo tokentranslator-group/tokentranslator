@@ -43,7 +43,7 @@ class Clause():
         if db is not None:
             self.db = db
         else:
-            from tokentranslator.gui.web.model.model_main import TokenizerDB
+            from tokentranslator.db_models.model_main import TokenizerDB
             self.db = TokenizerDB()
             # self.path_db = "env/clause/data/terms/input/demo_dialect.db"
             self.db.change_dialect_db("cs")

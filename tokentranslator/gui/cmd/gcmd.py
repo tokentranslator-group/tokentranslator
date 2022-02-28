@@ -1,4 +1,4 @@
-from tokentranslator.gui.web.model.model_main import TokenizerDB
+from tokentranslator.db_models.model_main import TokenizerDB
 from tokentranslator.env.equation_net.equation import Equation
 from tokentranslator.env.clause.clause_main import Clause
 

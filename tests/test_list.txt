@@ -13,6 +13,13 @@
 # clauses tests:
 ~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.env.clause.tests as ts;ts.run()"
 
+==================================================
+### Main tokentranslator tests:
+# for changing eqs dialect to tex:
+python3 -c "import tokentranslator.db_models.model_main as dbm; dbm.change_eqs('tex')"
+
+# to wolfram:
+python3 -c "import tokentranslator.db_models.model_main as dbm; dbm.change_eqs('wolfram')"
 ===================================================
 
 ### tokentranslator components tests:
@@ -66,9 +73,5 @@ v# parser general test:
 
 
 =======================================
-# Run server:
-~/anaconda3/envs/etokentranslator/bin/./python3 -c "import tokentranslator.gui.web.server.server_main as sm; sm.run()"
-# lex in "http://localhost:8888/
-# net in "http://localhost:8888/net
 
 # see also: tokentranslator/translator/tokenizer/tests/tests_list.py

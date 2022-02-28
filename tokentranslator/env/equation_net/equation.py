@@ -52,7 +52,7 @@ class Equation():
         if db is not None:
             self.db = db
         else:
-            from tokentranslator.gui.web.model.model_main import TokenizerDB
+            from tokentranslator.db_models.model_main import TokenizerDB
             self.db = TokenizerDB()
             # self.path_db = "env/equation_net/data/terms/input/demo_dialect.db"
             self.db.change_dialect_db("eqs")

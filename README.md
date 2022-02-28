@@ -42,7 +42,7 @@ source ~/anaconda3/bin/./activate parser_env
 ### usage
 ##### parsing equations (defalut from Wolfram)
 ```
-from tokentranslator.gui.web.model.model_main import TokenizerDB
+from tokentranslator.db_models.model_main import TokenizerDB
 from tokentranslator.env.equation_net.equation import Equation
 
 model = TokenizerDB()
@@ -111,7 +111,7 @@ print(net_vars)
 ```
 ##### parsing proposals:
 ```
-from tokentranslator.gui.web.model.model_main import TokenizerDB
+from tokentranslator.db_models.model_main import TokenizerDB
 from tokentranslator.env.clause.clause_main import Clause
 
 model = TokenizerDB()
@@ -140,7 +140,7 @@ print(net_vars)
 ```
 ##### sampling proposals:
 ```
-from tokentranslator.gui.web.model.model_main import TokenizerDB
+from tokentranslator.db_models.model_main import TokenizerDB
 from tokentranslator.env.clause.clause_main import Clause
 
 model = TokenizerDB()
